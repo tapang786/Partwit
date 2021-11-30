@@ -129,6 +129,12 @@ class Helper
             }
         }
 
+        $subscription = UserSubscription::where('user_id', $user_id)->first();
+        if(empty($subscription) || $subscription == null) {
+            $values['subscription'] = 'basic';
+        } else {
+            $values['subscription'] = 'premium';
+        }
 
         $values['profile_pic'] = (\Helper::getUserMeta($user_id, 'profile_pic', true) != "")?url(\Helper::getUserMeta($user_id, 'profile_pic', true)):url('images/placeholder.png');
         
@@ -286,9 +292,14 @@ class Helper
     }
 
 
-    public static function createNotification($user_id=0, $title="", $description="", $type="", $extra="")
+    public static function createNotification($user_id=0, $title="", $description="", $type="", $extra="", $date="")
     {
         // code...
+
+        if($date == "") {
+            $date = Carbon::now();
+        }
+        
         $status = false;
         $notification_id = Notifications::create([
             "user_id"           => $user_id,
@@ -296,6 +307,7 @@ class Helper
             "description"       => $description,
             "type"              => $type,
             "extra"             => $extra,
+            "date"              => $date,
         ])->id;
 
         if($notification_id) {

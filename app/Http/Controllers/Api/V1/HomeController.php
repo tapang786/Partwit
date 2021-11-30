@@ -206,7 +206,7 @@ class HomeController extends Controller
         
         $driver_list = [];
 
-        $drivers = User::select('users.*', DB::raw("6371 * acos(cos(radians(" . $lat . "))
+        $drivers = User::select('users.*', 'driver_current_route.route_coordinates', DB::raw("6371 * acos(cos(radians(" . $lat . "))
                             * cos(radians(users.lat)) 
                             * cos(radians(users.lng) - radians(" . $lng . ")) 
                             + sin(radians(" .$lat. ")) 
@@ -215,6 +215,7 @@ class HomeController extends Controller
                             ->orderBy("distance",'asc');
 
         $drivers->join('role_user', 'role_user.user_id', '=', 'users.id')->where('role_user.role_id', '=', '3'); 
+        $drivers->leftJoin('driver_current_route', 'driver_current_route.driver_id', '=', 'users.id'); 
 
         $driver_list = $drivers->get();
         
@@ -222,14 +223,21 @@ class HomeController extends Controller
             return response()->json(['status' => false, 'message' => 'No drivers found!', 'data' => []]);
         }
         $driver_lists = [];
+        $coordinate = [];
         foreach ($driver_list as $k => $values) {
             // 
-            $values = \Helper::singleUserInfoDataChange($values->id, $values);
+            if(json_decode($values['route_coordinates']) != null) {
+                // 
+                $values = \Helper::singleUserInfoDataChange($values->id, $values);
 
-            $values['status'] = \Helper::getDriverFriendStatus($user_id,$values->id);
-
-            if($values->id != $user_id){
-                $driver_lists[] = $values;
+                $values['status'] = \Helper::getDriverFriendStatus($user_id,$values->id);
+                $values['route_coordinates'] = json_decode($values['route_coordinates']);
+                $coordinate = (array)$values['route_coordinates'];
+                $values['start_coordinates'] = empty($coordinate) ? (object)$coordinate : reset($coordinate);
+                $values['end_coordinates'] = empty($coordinate) ? (object)$coordinate : end($coordinate);
+                if($values->id != $user_id){
+                    $driver_lists[] = $values;
+                }
             }
         }
 
@@ -903,14 +911,14 @@ class HomeController extends Controller
                 $customer_id = $user->customer_id;
             }
 
-            $tok = $stripe->tokens->create([
-                'card' => [
-                    'number' => '4242424242424242',
-                    'exp_month' => 11,
-                    'exp_year' => 2022,
-                    'cvc' => '314',
-                ],
-            ]);
+            // $tok = $stripe->tokens->create([
+            //     'card' => [
+            //         'number' => '4242424242424242',
+            //         'exp_month' => 11,
+            //         'exp_year' => 2022,
+            //         'cvc' => '314',
+            //     ],
+            // ]);
 
             // return $tok->card->id; 
 
@@ -921,8 +929,8 @@ class HomeController extends Controller
                 try {
                     $cardinfo = $stripe->customers->createSource(
                         $customer_id,
-                        ['source' => $tok->id]
-                        // ['source' => $src_token]
+                        // ['source' => $tok->id]
+                        ['source' => $src_token]
                     );  //-- done
 
                     $card_token = $cardinfo->id;
@@ -979,6 +987,8 @@ class HomeController extends Controller
                 ]);
 
                 \Helper::updateUserSubscriptionPlan($user->id, $subscription_id);
+                // \Helper::update_user_meta($user->id, 'subscription', 'premium');
+                
                 return response()->json(['status' => 'success', 'message' => "payment succeeded", 'data'=>$paymentIntent ], 200);
 
             } else {
@@ -1011,7 +1021,26 @@ class HomeController extends Controller
             
             require_once(base_path('vendor/stripe').'/init.php');
             $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
-            $cardinfo = $stripe->customers->createSource($user->customer_id, ['source' => $src_token] ); 
+
+            if($user->customer_id == "") {
+                // 
+                $customer = $stripe->customers->create([
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'phone' => ($user->phone != '') ? $user->phone : '',
+                    'description' => 'customer_'.$user->id,
+                ]); 
+
+                $customer_id = $customer->id;
+
+                User::where('id', $user->id)->update([
+                    'customer_id' => $customer_id,
+                ]);
+            } else {
+                $customer_id = $user->customer_id;
+            }
+            
+            $cardinfo = $stripe->customers->createSource($customer_id, ['source' => $src_token] ); 
 
 
             if(!empty($cardinfo)) {

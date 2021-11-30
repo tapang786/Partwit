@@ -185,10 +185,12 @@ class AdvertisementController extends Controller
                                             ->whereDate('end_date', '>', Carbon::now())
                                             ->first();
 
+            // return response()->json(['dsf' => $subscription]);
 
-            if(!empty($subscription)) {
-                $advertisements = Advertisement::inRandomOrder()->get();
-                
+            if(!empty($subscription) || $subscription == null) {
+                // $advertisements = Advertisement::where('status', '1')->inRandomOrder()->get();
+                $advertisements = Advertisement::where('status', '1')->inRandomOrder()->first();
+                $advertisements->banner_image = url('images/banners/'.$advertisements->banner_image);
                 $response['status']     = "success";
                 $response['message']    = "Advertisement list!";
                 $response['data']       = $advertisements;

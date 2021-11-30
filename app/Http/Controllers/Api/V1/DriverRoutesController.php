@@ -507,9 +507,10 @@ class DriverRoutesController extends Controller
             $route = ShareRoute::where('route_id', $route_id)->first();
             if(empty($route)) {
                 $share_route = ShareRoute::create([
-                    "share_by" => $driver->id, 
-                    "share_to" => $driver_id, 
-                    "route_id" => $route_id, 
+                    "share_by"  => $driver->id, 
+                    "share_to"  => $driver_id, 
+                    "route_id"  => $route_id, 
+                    "date"      => $date, 
                 ]);
 
                 $response['status'] = "success";
@@ -534,7 +535,7 @@ class DriverRoutesController extends Controller
                 $extra['route_name'] = $driver_route->route_name;
                 $extra['shared_date'] = Carbon::now()->format('Y-m-d H:i:s'); 
 
-                $notification = \Helper::createNotification($driver_id, $title, $desc, $type, json_encode($extra));
+                $notification = \Helper::createNotification($driver_id, $title, $desc, $type, json_encode($extra), $date);
 
             } else {
                 // 
@@ -573,6 +574,12 @@ class DriverRoutesController extends Controller
                 $driver_id = $driver->id;
             }
             $query = Notifications::where('user_id', $driver_id); 
+
+            $query->where(function($qry){
+                $qry->whereDate('date', '<', Carbon::now())
+                      ->orWhere('date', '=', null);
+            })
+            ->orderBy('id', 'DESC');
             $notifications = $query->get(); 
 
             if(count($notifications) > 0) {
@@ -669,7 +676,7 @@ class DriverRoutesController extends Controller
 
                 $extra['shared_date'] = Carbon::parse($share_route->created_at)->format('Y-m-d H:i:s'); 
 
-                $notification = \Helper::createNotification($share_route->share_by, $title, $desc, $type, json_encode($extra));
+                $notification = \Helper::createNotification($share_route->share_by, $title, $desc, $type, json_encode($extra), '');
                 
             }
             

@@ -23,6 +23,7 @@ class ShareRoute extends Model
         'share_by',
         'share_to',
         'route_id',
+        'date',
         'status',
     ];
 }
