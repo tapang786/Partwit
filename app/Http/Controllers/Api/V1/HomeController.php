@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use App\User;
 use Illuminate\Support\Facades\File; 
 use Gate;
-use Helper;
+use App\Helper;
 use Validator;
 use App\UserMeta;
 use App\UserMatch;
@@ -128,17 +128,17 @@ class HomeController extends Controller
             if($key == 'profile_pic') {
                     //
                 if(!empty($value)) { 
-                    $profile_image_url = \Helper::createImage($value, $user_id);
+                    $profile_image_url = Helper::createImage($value, $user_id);
                 }
                 if(!empty($profile_image_url)) {
                     // 
-                    $status = \Helper::update_user_meta($user_id, $key, $profile_image_url);
+                    $status = Helper::update_user_meta($user_id, $key, $profile_image_url);
                 }
-            } else {
+            } else if($key != 'key_value'){
                 $request_data[$key] = $value;
             }
             if($key == 'city') {
-                $status = \Helper::update_user_meta($user_id, $key, $value);
+                $status = Helper::update_user_meta($user_id, $key, $value);
                 // $request_data['city'] = $value;
             }
         }
@@ -147,13 +147,13 @@ class HomeController extends Controller
             $key_value = $request->key_value;
             foreach ($key_value as $key => $value) {
                 // code...
-                \Helper::update_user_meta($user_id, $key, $value);
+                Helper::update_user_meta($user_id, $key, $value);
             }
         }
         
         $user_info = User::updateOrCreate(['id' => $user_id], $request_data);
 
-        $user_info = \Helper::singleUserInfoDataChange($user_info->id, $user_info);
+        $user_info = Helper::singleUserInfoDataChange($user_info->id, $user_info);
         return response()->json(['status' => true, 'message' => 'Update successfully!', 'user_info' => $user_info]);
     }
 
@@ -171,12 +171,12 @@ class HomeController extends Controller
         }
         $user_id = $user->id;
 
-        $user_info = \Helper::getUserInfo($user_id);
+        $user_info = Helper::getUserInfo($user_id);
         if(!$user_info) {
             return response()->json(['status' => false, 'message' => 'No data found!']);
         }
         
-        $user_info = \Helper::singleUserInfoDataChange($user_id, $user);
+        $user_info = Helper::singleUserInfoDataChange($user_id, $user);
         
         return response()->json(['status' => true, 'message' => 'User data!', 'user_info' => $user_info]);
     }
@@ -228,9 +228,9 @@ class HomeController extends Controller
             // 
             if(json_decode($values['route_coordinates']) != null) {
                 // 
-                $values = \Helper::singleUserInfoDataChange($values->id, $values);
+                $values = Helper::singleUserInfoDataChange($values->id, $values);
 
-                $values['status'] = \Helper::getDriverFriendStatus($user_id,$values->id);
+                $values['status'] = Helper::getDriverFriendStatus($user_id,$values->id);
                 $values['route_coordinates'] = json_decode($values['route_coordinates']);
                 $coordinate = (array)$values['route_coordinates'];
                 $values['start_coordinates'] = empty($coordinate) ? (object)$coordinate : reset($coordinate);
@@ -309,13 +309,13 @@ class HomeController extends Controller
                 $remember_devices = [];
                 if(isset($remember_device) && $remember_device == 'true') {
 
-                    $remember_devices = json_decode(\Helper::getUserMeta($user->id, 'remember_devices', true));
+                    $remember_devices = json_decode(Helper::getUserMeta($user->id, 'remember_devices', true));
                     if(empty($remember_devices)) {
                         $remember_devices[] = $device_id;
-                        \Helper::update_user_meta($user->id, 'remember_devices', json_encode($remember_devices));
+                        Helper::update_user_meta($user->id, 'remember_devices', json_encode($remember_devices));
                     } else if (!in_array($device_id, $remember_devices)) {
                         $remember_devices[] .= $device_id;
-                        \Helper::update_user_meta($user->id, 'remember_devices', json_encode($remember_devices));
+                        Helper::update_user_meta($user->id, 'remember_devices', json_encode($remember_devices));
                     }
                 }
                 
@@ -345,7 +345,7 @@ class HomeController extends Controller
         $parameters = $request->all();
         extract($parameters);
 
-        $user = \Helper::get_user('email', $email); 
+        $user = Helper::get_user('email', $email); 
         if(!$user) {
             return response()->json(['status'=> false, 'message' => 'Email id not found!']);
         }
@@ -986,8 +986,8 @@ class HomeController extends Controller
                     'charge_id' => $paymentIntent->charges->data[0]->id,
                 ]);
 
-                \Helper::updateUserSubscriptionPlan($user->id, $subscription_id);
-                // \Helper::update_user_meta($user->id, 'subscription', 'premium');
+                Helper::updateUserSubscriptionPlan($user->id, $subscription_id);
+                // Helper::update_user_meta($user->id, 'subscription', 'premium');
                 
                 return response()->json(['status' => 'success', 'message' => "payment succeeded", 'data'=>$paymentIntent ], 200);
 
