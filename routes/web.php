@@ -1,11 +1,10 @@
 <?php
 
-Route::redirect('/', '/sweeper/login');
-Route::redirect('/home', '/sweeper/admin');
-Route::redirect('/admin', '/sweeper/admin');
+Route::redirect('/', '/login');
+Route::redirect('/home', '/dashboard');
 Auth::routes(['register' => false]);
 
-Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'middleware' => ['auth']], function () {
+Route::group(['prefix' => 'dashboard', 'as' => 'admin.', 'namespace' => 'Admin', 'middleware' => ['auth']], function () {
     Route::get('/', 'HomeController@index')->name('home');
     // Permissions
     Route::delete('permissions/destroy', 'PermissionsController@massDestroy')->name('permissions.massDestroy');
@@ -17,34 +16,33 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
 
     // Users
     Route::delete('users/destroy', 'UsersController@massDestroy')->name('users.massDestroy');
+    Route::get('users-enable/{id}', 'UsersController@isenable')->name('users-enable');
     Route::resource('users', 'UsersController');
 
-    // Drivers
-    Route::delete('drivers/destroy', 'DriversController@massDestroy')->name('drivers.massDestroy');
-    Route::resource('drivers', 'DriversController');
+    Route::get('vendor', 'UsersController@showVendor')->name('vendor');
 
-    // City
-    Route::delete('city/destroy', 'CityController@massDestroy')->name('city.massDestroy');
-    Route::resource('city', 'CityController');
+    Route::get('vendor-add', 'UsersController@addVendor')->name('vendor-add');
+    Route::post('vendor-store', 'UsersController@storeVendor')->name('vendor-store');
 
-    // Advertisement
-    Route::delete('advertisement/destroy', 'AdvertisementController@massDestroy')->name('advertisement.massDestroy');
-    Route::resource('advertisement', 'AdvertisementController');
 
-    // Pages
-    Route::delete('pages/destroy', 'PagesController@massDestroy')->name('pages.massDestroy');
-    Route::resource('pages', 'PagesController');
+    // Products
+    Route::resource('products', 'ProductsController');
+    Route::delete('products/destroy', 'SubscriptionController@massDestroy')->name('products.massDestroy');
+
+
+    //Category
+    Route::resource('category', 'CategoryController');
+
+    //Attributes
+    Route::resource('attributes', 'AttributeController');
+
+    //Attributes Value
+    Route::resource('attribute-value', 'AttributeValueController');
+
 
     // Subscriptions
     Route::resource('subscription', 'SubscriptionController');
     Route::delete('subscription/destroy', 'SubscriptionController@massDestroy')->name('subscription.massDestroy');
 
 
-    // Payments
-    Route::resource('payments', 'PaymentsController');
-    // Route::delete('subscription/destroy', 'SubscriptionController@massDestroy')->name('subscription.massDestroy');
-
 });
-
-Route::get('ckeditor', 'CkeditorController@index');
-Route::post('ckeditor/upload', 'CkeditorController@upload')->name('ckeditor.upload');

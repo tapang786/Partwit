@@ -6,16 +6,14 @@ use Carbon\Carbon;
 use Hash;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-// use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
-// use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    // use SoftDeletes; 
-    use Notifiable, HasApiTokens;
+    use SoftDeletes, Notifiable, HasApiTokens;
 
     public $table = 'users';
 
@@ -35,9 +33,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'lat',
-        'lng',
-        'phone',
         'device_id',
         'customer_id',
         'created_at',
@@ -45,7 +40,6 @@ class User extends Authenticatable
         'deleted_at',
         'remember_token',
         'email_verified_at',
-        'notification_status',
     ];
 
     public function getEmailVerifiedAtAttribute($value)

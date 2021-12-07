@@ -28,8 +28,17 @@
                         <b class="caret"></b>
                     </p>
                 </a>
-                <div class="collapse {{ request()->is('dashboard/category') || request()->is('dashboard/category/*') ? 'show' : '' }}" id="product_management">
+                <div class="collapse {{ request()->is('dashboard/products') || request()->is('dashboard/products/*') || request()->is('dashboard/category') || request()->is('dashboard/category/*') ? 'show' : '' }}" id="product_management">
                     <ul class="nav">
+
+                        @can('product_management_access')
+                        <li class="nav-item {{ request()->is('dashboard/products') || request()->is('dashboard/products/*') ? 'active' : '' }}">
+                            <a href="{{ route("admin.products.index") }}" class="nav-link " class="nav-link" >
+                                <i class="fab fa-product-hunt"></i> 
+                                <span>All Products</span>
+                            </a>
+                        </li>
+                        @endcan
 
                         @can('category_management_access')
                         <li class="nav-item {{ request()->is('dashboard/category') || request()->is('dashboard/category/*') ? 'active' : '' }}">

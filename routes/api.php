@@ -24,8 +24,11 @@ Route::post('resend-email-verification-otp', [HomeController::class, 'reSendEmai
 // Forgot password send otp
 Route::post('send-forgot-password-otp-mail', [HomeController::class, 'sendForgetPasswordOtpMail']);
 
-// Change password
-Route::post('change-forget-password', [HomeController::class, 'changeUserPassword']);
+// Verify forget password OTP
+Route::post('verify-forget-password-otp', [HomeController::class, 'verifyForgetPasswordOTP']);
+
+// Change Forget Password
+Route::post('change-forget-password', [HomeController::class, 'changeForgetPassword']);
 
 // Privacy Policy
 Route::get('privacy-policy', [HomeController::class, 'privacyPolicy']);
@@ -43,9 +46,6 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     // Users
     Route::apiResource('users', 'UsersApiController');
 
-    // Update User
-    Route::post('update-user-data', [HomeController::class, 'saveUserDetails']);
-
     // Verify User Email Opt
     Route::post('verify-user-email-otp', [HomeController::class, 'verifyUserOtpVerificationMail']);
 
@@ -55,5 +55,10 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     // Products Controller
     Route::apiResource('products', 'ProductsController');
 
+    // Update User
+    Route::post('update-user-data', [HomeController::class, 'saveUserDetails']);
+
+    // Users - My Profile M1
+    Route::get('my-profile', [HomeController::class, 'myProfile']);
 
 });

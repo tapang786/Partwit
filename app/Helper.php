@@ -1,4 +1,4 @@
-<?php // Code within app\Helpers\Helper.php
+<?php // Code within appHelpersHelper.php
 namespace App;
 use Config;
 use Illuminate\Support\Str;
@@ -32,7 +32,7 @@ class Helper
     // public static function addUserImages($imgs=array(), $user_id=0)
     // {
     //     // code...
-    //     $profile_images = json_decode(\Helper::getUserImages($user_id));
+    //     $profile_images = json_decode(Helper::getUserImages($user_id));
     //     if(empty($profile_images)) {
     //         $profile_images = [];
     //     }
@@ -41,7 +41,7 @@ class Helper
     //     foreach ($imgs as $key => $value) {
     //         // code...
     //         if($i<6) {
-    //             $img = \Helper::createImage($value, $user_id);
+    //             $img = Helper::createImage($value, $user_id);
     //             $profile_images[] = $img;
     //         }
     //         $i++;
@@ -121,7 +121,7 @@ class Helper
     public static function singleUserInfoDataChange($user_id, $values) {
 
         $profile_images = [];
-        $metadetail = \Helper::getUserMeta($user_id);
+        $metadetail = Helper::getUserMeta($user_id);
         foreach ($metadetail as $key => $value) {
             // code...
             if("profile_images" != $key) {
@@ -129,14 +129,14 @@ class Helper
             }
         }
 
-        $subscription = UserSubscription::where('user_id', $user_id)->first();
-        if(empty($subscription) || $subscription == null) {
-            $values['subscription'] = 'basic';
-        } else {
-            $values['subscription'] = 'premium';
-        }
+        // $subscription = UserSubscription::where('user_id', $user_id)->first();
+        // if(empty($subscription) || $subscription == null) {
+        //     $values['subscription'] = 'basic';
+        // } else {
+        //     $values['subscription'] = 'premium';
+        // }
 
-        $values['profile_pic'] = (\Helper::getUserMeta($user_id, 'profile_pic', true) != "")?url(\Helper::getUserMeta($user_id, 'profile_pic', true)):url('images/placeholder.png');
+        $values['profile_pic'] = (Helper::getUserMeta($user_id, 'profile_pic', true) != "")?url(Helper::getUserMeta($user_id, 'profile_pic', true)):url('images/placeholder.png');
         
         return $values;
     }

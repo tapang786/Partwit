@@ -3,23 +3,16 @@
 @can('user_create')
     <div style="margin-bottom: 10px;" class="row">
         <div class="col-lg-12">
-            @if(request()->is('dashboard/vendor'))
-            <a class="btn btn-success" href="{{ route("admin.vendor-add") }}">
-                Add vendor
+            <a class="btn btn-success" href="{{ route("admin.category.create") }}">
+              Add Category
             </a>
-            @else
-            <a class="btn btn-success" href="{{ route("admin.users.create") }}">
-            {{ trans('global.add') }} {{ trans('cruds.user.title_singular') }}
-            </a>
-            @endif
-           
         </div>
     </div>
 @endcan
 <div class="card">
     <div class="card-header card-header-primary">
         <h4 class="card-title">
-            {{ trans('cruds.user.title_singular') }} {{ trans('global.list') }}
+        {{$title}}  
         </h4>
     </div>
 
@@ -32,77 +25,76 @@
 
                         </th>
                         <th>
-                            {{ trans('cruds.user.fields.id') }}
+                            id
                         </th>
                         <th>
-                            {{ trans('cruds.user.fields.name') }}
+                            Attribute Name
                         </th>
                         <th>
-                            {{ trans('cruds.user.fields.email') }}
+                            Category
                         </th>
                         <th>
-                            {{ trans('cruds.user.fields.email_verified_at') }}
+                           Attributes Value
                         </th>
+                        @can('cat_add')
                         <th>
-                            {{ trans('cruds.user.fields.roles') }}
+                           Add Attribute
                         </th>
+                        @endcan
+                        <th>
+                            Action
+                        </th>
+                       
                         <th>
                             &nbsp;
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($users as $key => $user)
-                        <tr data-entry-id="{{ $user->id }}">
+                    @foreach($Attributes as $key => $attr)
+                        <tr data-entry-id="{{ $attr->id }}">
                             <td>
 
                             </td>
                             <td>
-                                {{ $user->id ?? '' }}
+                                {{ $attr->id ?? '' }}
                             </td>
                             <td>
-                                {{ $user->name ?? '' }}
+                                {{ $attr->title ?? '' }}
                             </td>
                             <td>
-                                {{ $user->email ?? '' }}
+                            {{ $attr->name ?? '' }}
                             </td>
                             <td>
-                                {{ $user->email_verified_at ?? '' }}
+                                @foreach($attr->atrVal as  $v)
+
+                                <span>{{ $v->title ?? '' }},</span>
+                               @endforeach
                             </td>
+                            @can('cat_add')
                             <td>
-                                @foreach($user->roles as $key => $item)
-                                    <span class="badge badge-info">{{ $item->title }}</span>
-                                @endforeach
+                                    <a class="btn btn-xs btn-success" href="{{ route('admin.attributes.create') }}">
+                                       add attributes
+                                    </a>
                             </td>
+                            @endcan
+                           
+                           
                             <td>
                                 @can('user_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.users.show', $user->id) }}">
+                                    <a class="btn btn-xs btn-primary" href="">
                                         {{ trans('global.view') }}
                                     </a>
                                 @endcan
 
                                 @can('user_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.users.edit', $user->id) }}">
+                                    <a class="btn btn-xs btn-info" href="{{ route('admin.category.edit', $attr->id) }}">
                                         {{ trans('global.edit') }}
                                     </a>
                                 @endcan
 
-
-                                @can('user_edit')
-                                @if($user->is_enable == 1)
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.users-enable', $user->id) }}">Disable
-                                    </a>
-                                    @else
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.users-enable', $user->id) }}">Enable
-                                    </a>
-                                    @endif
-                                @endcan
-
-                                
-
-
                                 @can('user_delete')
-                                    <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                                    <form action="{{ route('admin.category.destroy', $attr->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
                                         <input type="hidden" name="_method" value="DELETE">
                                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                         <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
@@ -118,6 +110,19 @@
         </div>
     </div>
 </div>
+<style>
+    table.dataTable tbody td.select-checkbox:before, table.dataTable tbody th.select-checkbox:before {
+    content: ' ';
+    margin-top: -6px;
+    margin-left: -6px;
+    border: 1px solid black;
+    border-radius: 3px;
+}
+table.dataTable tbody td.select-checkbox:before {
+    display:none
+
+}
+</style>
 @endsection
 @section('scripts')
 @parent

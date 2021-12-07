@@ -3,23 +3,16 @@
 @can('user_create')
     <div style="margin-bottom: 10px;" class="row">
         <div class="col-lg-12">
-            @if(request()->is('dashboard/vendor'))
-            <a class="btn btn-success" href="{{ route("admin.vendor-add") }}">
-                Add vendor
+            <a class="btn btn-success" href="{{ route("admin.category.create") }}">
+              Add Category
             </a>
-            @else
-            <a class="btn btn-success" href="{{ route("admin.users.create") }}">
-            {{ trans('global.add') }} {{ trans('cruds.user.title_singular') }}
-            </a>
-            @endif
-           
         </div>
     </div>
 @endcan
 <div class="card">
     <div class="card-header card-header-primary">
         <h4 class="card-title">
-            {{ trans('cruds.user.title_singular') }} {{ trans('global.list') }}
+        {{$title}}  
         </h4>
     </div>
 
@@ -32,77 +25,67 @@
 
                         </th>
                         <th>
-                            {{ trans('cruds.user.fields.id') }}
+                            id
                         </th>
                         <th>
-                            {{ trans('cruds.user.fields.name') }}
+                            Title
                         </th>
                         <th>
-                            {{ trans('cruds.user.fields.email') }}
+                            Description
                         </th>
                         <th>
-                            {{ trans('cruds.user.fields.email_verified_at') }}
+                            Parent Category
                         </th>
                         <th>
-                            {{ trans('cruds.user.fields.roles') }}
+                            Action
                         </th>
+                       
                         <th>
                             &nbsp;
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($users as $key => $user)
-                        <tr data-entry-id="{{ $user->id }}">
+                    @foreach($category as $key => $category)
+                        <tr data-entry-id="{{ $category->id }}">
                             <td>
 
                             </td>
                             <td>
-                                {{ $user->id ?? '' }}
+                                {{ $category->id ?? '' }}
                             </td>
                             <td>
-                                {{ $user->name ?? '' }}
+                                {{ $category->title ?? '' }}
                             </td>
                             <td>
-                                {{ $user->email ?? '' }}
+                                {{ $category->description ?? '' }}
                             </td>
                             <td>
-                                {{ $user->email_verified_at ?? '' }}
+                                {{ $category->parent_name ?? 'No parent' }}
                             </td>
-                            <td>
-                                @foreach($user->roles as $key => $item)
-                                    <span class="badge badge-info">{{ $item->title }}</span>
-                                @endforeach
-                            </td>
+                           
+                           
                             <td>
                                 @can('user_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.users.show', $user->id) }}">
+                                    <a class="btn btn-xs btn-primary" href="">
                                         {{ trans('global.view') }}
                                     </a>
                                 @endcan
 
                                 @can('user_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.users.edit', $user->id) }}">
+                                    <a class="btn btn-xs btn-info" href="{{ route('admin.category.edit', $category->id) }}">
                                         {{ trans('global.edit') }}
                                     </a>
                                 @endcan
 
-
-                                @can('user_edit')
-                                @if($user->is_enable == 1)
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.users-enable', $user->id) }}">Disable
+                                @can('cat_add')
+                                    <a class="btn btn-xs btn-success" href="{{ route('admin.attributes.create') }}">
+                                       add attributes
                                     </a>
-                                    @else
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.users-enable', $user->id) }}">Enable
-                                    </a>
-                                    @endif
                                 @endcan
 
-                                
-
-
                                 @can('user_delete')
-                                    <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                                    <form action="{{ route('admin.category.destroy', $category->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
                                         <input type="hidden" name="_method" value="DELETE">
                                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                         <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
@@ -118,6 +101,19 @@
         </div>
     </div>
 </div>
+<style>
+    table.dataTable tbody td.select-checkbox:before, table.dataTable tbody th.select-checkbox:before {
+    content: ' ';
+    margin-top: -6px;
+    margin-left: -6px;
+    border: 1px solid black;
+    border-radius: 3px;
+}
+table.dataTable tbody td.select-checkbox:before {
+    display:none
+
+}
+</style>
 @endsection
 @section('scripts')
 @parent

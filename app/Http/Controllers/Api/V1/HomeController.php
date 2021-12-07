@@ -137,10 +137,10 @@ class HomeController extends Controller
             } else if($key != 'key_value'){
                 $request_data[$key] = $value;
             }
-            if($key == 'city') {
-                $status = Helper::update_user_meta($user_id, $key, $value);
-                // $request_data['city'] = $value;
-            }
+            // if($key == 'city') {
+            //     $status = Helper::update_user_meta($user_id, $key, $value);
+            //     // $request_data['city'] = $value;
+            // }
         }
 
         if(isset($request->key_value)) {
@@ -182,67 +182,67 @@ class HomeController extends Controller
     }
 
 
-    function nearDriversList(Request $request) { 
-        //
-        if (Auth::guard('api')->check()) {
-            $user = Auth::guard('api')->user();
-        }
+    // function nearDriversList(Request $request) { 
+    //     //
+    //     if (Auth::guard('api')->check()) {
+    //         $user = Auth::guard('api')->user();
+    //     }
 
-        if(!$user) {
-            return response()->json(['status' => false, 'message' => 'login token error!']);
-        }
+    //     if(!$user) {
+    //         return response()->json(['status' => false, 'message' => 'login token error!']);
+    //     }
 
-        $parameters = $request->all();
-        extract($parameters);
+    //     $parameters = $request->all();
+    //     extract($parameters);
 
-        $user_id = $user->id;
-        $lat = isset($lat)?$lat:$user->lat;
-        $lng = isset($lng)?$lng:$user->lng;
+    //     $user_id = $user->id;
+    //     $lat = isset($lat)?$lat:$user->lat;
+    //     $lng = isset($lng)?$lng:$user->lng;
 
-        if(empty($lat) && empty($lng)) {
-            return response()->json(['status' => false, 'message' => 'User coordinates not found!']);
-        }
-        $radius = isset( $radius ) ? $radius : 10;
+    //     if(empty($lat) && empty($lng)) {
+    //         return response()->json(['status' => false, 'message' => 'User coordinates not found!']);
+    //     }
+    //     $radius = isset( $radius ) ? $radius : 10;
         
-        $driver_list = [];
+    //     $driver_list = [];
 
-        $drivers = User::select('users.*', 'driver_current_route.route_coordinates', DB::raw("6371 * acos(cos(radians(" . $lat . "))
-                            * cos(radians(users.lat)) 
-                            * cos(radians(users.lng) - radians(" . $lng . ")) 
-                            + sin(radians(" .$lat. ")) 
-                            * sin(radians(users.lat))) AS distance"))
-                            ->having("distance", "<", $radius)
-                            ->orderBy("distance",'asc');
+    //     $drivers = User::select('users.*', 'driver_current_route.route_coordinates', DB::raw("6371 * acos(cos(radians(" . $lat . "))
+    //                         * cos(radians(users.lat)) 
+    //                         * cos(radians(users.lng) - radians(" . $lng . ")) 
+    //                         + sin(radians(" .$lat. ")) 
+    //                         * sin(radians(users.lat))) AS distance"))
+    //                         ->having("distance", "<", $radius)
+    //                         ->orderBy("distance",'asc');
 
-        $drivers->join('role_user', 'role_user.user_id', '=', 'users.id')->where('role_user.role_id', '=', '3'); 
-        $drivers->leftJoin('driver_current_route', 'driver_current_route.driver_id', '=', 'users.id'); 
+    //     $drivers->join('role_user', 'role_user.user_id', '=', 'users.id')->where('role_user.role_id', '=', '3'); 
+    //     $drivers->leftJoin('driver_current_route', 'driver_current_route.driver_id', '=', 'users.id'); 
 
-        $driver_list = $drivers->get();
+    //     $driver_list = $drivers->get();
         
-        if(count($driver_list) == 0) {
-            return response()->json(['status' => false, 'message' => 'No drivers found!', 'data' => []]);
-        }
-        $driver_lists = [];
-        $coordinate = [];
-        foreach ($driver_list as $k => $values) {
-            // 
-            if(json_decode($values['route_coordinates']) != null) {
-                // 
-                $values = Helper::singleUserInfoDataChange($values->id, $values);
+    //     if(count($driver_list) == 0) {
+    //         return response()->json(['status' => false, 'message' => 'No drivers found!', 'data' => []]);
+    //     }
+    //     $driver_lists = [];
+    //     $coordinate = [];
+    //     foreach ($driver_list as $k => $values) {
+    //         // 
+    //         if(json_decode($values['route_coordinates']) != null) {
+    //             // 
+    //             $values = Helper::singleUserInfoDataChange($values->id, $values);
 
-                $values['status'] = Helper::getDriverFriendStatus($user_id,$values->id);
-                $values['route_coordinates'] = json_decode($values['route_coordinates']);
-                $coordinate = (array)$values['route_coordinates'];
-                $values['start_coordinates'] = empty($coordinate) ? (object)$coordinate : reset($coordinate);
-                $values['end_coordinates'] = empty($coordinate) ? (object)$coordinate : end($coordinate);
-                if($values->id != $user_id){
-                    $driver_lists[] = $values;
-                }
-            }
-        }
+    //             $values['status'] = Helper::getDriverFriendStatus($user_id,$values->id);
+    //             $values['route_coordinates'] = json_decode($values['route_coordinates']);
+    //             $coordinate = (array)$values['route_coordinates'];
+    //             $values['start_coordinates'] = empty($coordinate) ? (object)$coordinate : reset($coordinate);
+    //             $values['end_coordinates'] = empty($coordinate) ? (object)$coordinate : end($coordinate);
+    //             if($values->id != $user_id){
+    //                 $driver_lists[] = $values;
+    //             }
+    //         }
+    //     }
 
-        return response()->json(['status' => true, 'message' => 'Drivers list!', 'data' => $driver_lists]);
-    }
+    //     return response()->json(['status' => true, 'message' => 'Drivers list!', 'data' => $driver_lists]);
+    // }
 
 
     public function verifyUserOtpVerificationMail(Request $request)
@@ -288,11 +288,7 @@ class HomeController extends Controller
             }
             else {
             // 
-                // $user = User::updateOrCreate([
-                //     'id' => $user->id,
-                // ], [
-                //     'isEmailVerified' => 1, 
-                // ]);
+                
                 
                 $response['status'] = true;
                 $response['message'] = 'email verfied successfully!';
@@ -441,7 +437,7 @@ class HomeController extends Controller
         return response()->json($response);
     }
 
-    public function changeUserPassword(Request $request)
+    public function verifyForgetPasswordOTP(Request $request)
     {
         // code...
         $parameters = $request->all();
@@ -454,9 +450,9 @@ class HomeController extends Controller
         if($forget_password == "true" && $otp=='') {
             return response()->json(['status' => false, 'message' => 'OTP required!']);
         }
-        if($password != $confirm_password) {
-            return response()->json(['status' => false, 'message' => 'Confirm password not matched!']);
-        }
+        // if($password != $confirm_password) {
+        //     return response()->json(['status' => false, 'message' => 'Confirm password not matched!']);
+        // }
 
         if($forget_password == "true") {
             // 
@@ -464,7 +460,6 @@ class HomeController extends Controller
                 ->where('type', '=', 'forget_password')
                 ->first();
 
-            // return $token;
             if(!empty($token)) {
 
                 $date2 = new Carbon($token->expire);
@@ -479,57 +474,97 @@ class HomeController extends Controller
                 else {
                 // 
                     try {
-                        User::where('id', $token->user_id)->update(['password' => Hash::make($password)]);
-                        $response = array("status" => true, "message" => "Password changed successfully!");
+                        // User::where('id', $token->user_id)->update(['password' => Hash::make($password)]);
+                        $response = array("status" => true, "message" => "OTP verified successfully!");
                         $token->delete();
                     }
                     catch (\Exception $ex) {
-                        $response = array("status" => false, "message" => 'password not change!');
+                        $response = array("status" => false, "message" => 'OTP is expired!');
                     }
                 }
             } else {
                 $response['status'] = false;
                 $response['message'] = 'OTP not valid!';
             }
-        } else {
-            // 
-            $validator = \Validator::make($request->all() , [
-                'old_password' => 'required|min:6',
-                'password' => 'required|min:6',
-                'confirm_password' => 'required|same:password',
-            ]);
+        } 
 
-            if ($validator->fails()) {
-                $response = $validator->errors();
-                return response()
-                    ->json(['status' => false, 'message' => implode("", $validator->errors()
-                    ->all()) ], 200);
-            }
+        // else {
+        //     // 
+        //     $validator = \Validator::make($request->all() , [
+        //         'old_password' => 'required|min:6',
+        //         'password' => 'required|min:6',
+        //         'confirm_password' => 'required|same:password',
+        //     ]);
 
-            // code...
-            if (!Auth::guard('api')->check()) {
-                return response()->json(['status' => false, 'message' => 'user not login!']);
-            }
-            $user = Auth::guard('api')->user();
-            if(!$user) {
-                return response()->json(['status' => false, 'message' => 'login token error!']);
-            }
+        //     if ($validator->fails()) {
+        //         $response = $validator->errors();
+        //         return response()
+        //             ->json(['status' => false, 'message' => implode("", $validator->errors()
+        //             ->all()) ], 200);
+        //     }
 
-            if (Hash::check($old_password, $user->password)) { 
-                // 
-                try {
-                    $user->fill([ 'password' => Hash::make($password) ])->save();
-                    $response = array("status" => true, "message" => "Password changed successfully!");
-                    // $token->delete();
-                }
-                catch (\Exception $ex) {
-                    $response = array("status" => false, "message" => 'password not change!');
-                }
-            } else {
-                $response = array("status" => false, "message" => 'Old password not matched!');
-            }
+        //     // code...
+        //     if (!Auth::guard('api')->check()) {
+        //         return response()->json(['status' => false, 'message' => 'user not login!']);
+        //     }
+        //     $user = Auth::guard('api')->user();
+        //     if(!$user) {
+        //         return response()->json(['status' => false, 'message' => 'login token error!']);
+        //     }
 
+        //     if (Hash::check($old_password, $user->password)) { 
+        //         // 
+        //         try {
+        //             $user->fill([ 'password' => Hash::make($password) ])->save();
+        //             $response = array("status" => true, "message" => "Password changed successfully!");
+        //             // $token->delete();
+        //         }
+        //         catch (\Exception $ex) {
+        //             $response = array("status" => false, "message" => 'password not change!');
+        //         }
+        //     } else {
+        //         $response = array("status" => false, "message" => 'Old password not matched!');
+        //     }
+
+        // }
+        
+        return response()->json($response);
+    }
+
+
+    public function changeForgetPassword(Request $request)
+    {
+        // code...
+        $parameters = $request->all();
+        extract($parameters);
+
+        $validator = \Validator::make($request->all() , [
+            'password' => 'required|min:6',
+            'confirm_password' => 'required|same:password',
+        ]);
+
+        if ($validator->fails()) {
+            $response = $validator->errors();
+            return response()
+                ->json(['status' => false, 'message' => implode("", $validator->errors()
+                ->all()) ], 200);
         }
+
+        $user = User::where('email', '=', $email)->first();
+
+        // if (Hash::check($old_password, $user->password)) { 
+            // 
+        try {
+            $user->fill([ 'password' => Hash::make($password) ])->save();
+            $response = array("status" => true, "message" => "Password changed successfully!");
+            // $token->delete();
+        }
+        catch (\Exception $ex) {
+            $response = array("status" => false, "message" => 'password not change!');
+        }
+        // } else {
+        //     $response = array("status" => false, "message" => 'Old password not matched!');
+        // }
         
         return response()->json($response);
     }
@@ -576,14 +611,68 @@ class HomeController extends Controller
 
         try {
             Mail::to($user_email)->send(new UserOtpVerificationMail($config));
-            $response['status'] = "success";
+            $response['status'] = true;
             $response['message'] = "Verification mail send successfully!";
         } catch(Exception $e) {
-            $response['status'] = "fail";
+            $response['status'] = false;
             $response['message'] = "Error: ".$e;
         }
         
         return response()->json($response);
+    }
+
+
+    public function changeUserPassword(Request $request) 
+    {
+        // code...
+
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $user_id = $user->id;
+
+            $validator = \Validator::make($request->all() , [
+                'password' => 'required|min:6',
+                'confirm_password' => 'required|same:password',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            if (Hash::check($old_password, $user->password)) { 
+                // 
+                try {
+                    $user->fill([ 'password' => Hash::make($password) ])->save();
+                    $response = array("status" => true, "message" => "Password changed successfully!");
+                    // $token->delete();
+                }
+                catch (\Exception $ex) {
+                    $response = array("status" => false, "message" => 'password not change!');
+                }
+            } else {
+                $response = array("status" => false, "message" => 'Old password not matched!');
+            }
+            
+            return response()->json($response);
+
+        } catch(Exception $e) {
+            $response['status'] = "fail";
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
     }
 
     public function subscriptionList(Request $request)
@@ -623,149 +712,198 @@ class HomeController extends Controller
     }
 
 
-    public function driverRoutes(Request $request)
+    public function myProfile(Request $request)
     {
         // code...
         try {
-
+            // 
             if (Auth::guard('api')->check()) {
-                $driver = Auth::guard('api')->user();
+                $user = Auth::guard('api')->user();
             }
-            if(!$driver) {
+            if(!$user) {
                 return response()->json(['status' => false, 'message' => 'login token error!']);
             }
 
-            $parameters = $request->all();
-            extract($parameters);
+            $user_id = $user->id;
+            $user->load('roles');
 
-            if(!isset($driver_id)) {
-                $driver_id = $driver->id;
+            unset($user['roles']);
+            
+            $token = $user->createToken($user->id . '-' . now());
+
+            $remember_device = false;
+            $remember_devices = json_decode(Helper::getUserMeta($user->id, 'remember_devices', true));
+            if(empty($remember_devices)) {
+                $remember_device = false;
+            } else {
+                if (in_array($device_id, $remember_devices)) {
+                    $remember_device = true;
+                }
             }
+            
+            $user = Helper::singleUserInfoDataChange($user->id, $user);
+            $role = $user->roles[0]->id;
+            unset($user['roles']);
+            return response()->json([
+                'status' => true, 
+                'message' => 'Profile data!',
+                'token' => $token->accessToken, 
+                'remember_device' => $remember_device,
+                'role' => $role,
+                'user_info' => $user,
+            ]);
 
-            $routes = DriverRoutes::get();
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+        
+    }
 
-            foreach ($routes as $key => $route) {
-                // code...
-                $route->route_coordinates = json_decode($route->route_coordinates);
-            }
-            $response = [];
 
-            try {
-                // 
+    // public function driverRoutes(Request $request)
+    // {
+    //     // code...
+    //     try {
+
+    //         if (Auth::guard('api')->check()) {
+    //             $driver = Auth::guard('api')->user();
+    //         }
+    //         if(!$driver) {
+    //             return response()->json(['status' => false, 'message' => 'login token error!']);
+    //         }
+
+    //         $parameters = $request->all();
+    //         extract($parameters);
+
+    //         if(!isset($driver_id)) {
+    //             $driver_id = $driver->id;
+    //         }
+
+    //         $routes = DriverRoutes::get();
+
+    //         foreach ($routes as $key => $route) {
+    //             // code...
+    //             $route->route_coordinates = json_decode($route->route_coordinates);
+    //         }
+    //         $response = [];
+
+    //         try {
+    //             // 
                 
-                $response['status'] = "success";
-                $response['message'] = "Routes List!";
-                $response['data'] = $routes;
-            } catch(Exception $e) {
-                $response['status'] = "fail";
-                $response['message'] = "Error: ".$e;
-            }
+    //             $response['status'] = "success";
+    //             $response['message'] = "Routes List!";
+    //             $response['data'] = $routes;
+    //         } catch(Exception $e) {
+    //             $response['status'] = "fail";
+    //             $response['message'] = "Error: ".$e;
+    //         }
             
-            return response()->json($response);
+    //         return response()->json($response);
 
-        } catch(Exception $e) {
-            $response['status'] = "fail";
-            $response['message'] = "Error: ".$e;
-            return response()->json($response);
-        }
-    }
+    //     } catch(Exception $e) {
+    //         $response['status'] = "fail";
+    //         $response['message'] = "Error: ".$e;
+    //         return response()->json($response);
+    //     }
+    // }
 
 
-    public function driverAssignRoutes(Request $request)
-    {
-        // code...
-        try {
+    // public function driverAssignRoutes(Request $request) {
+    //     // code...
+    //     try {
 
-            if (Auth::guard('api')->check()) {
-                $driver = Auth::guard('api')->user();
-            }
-            if(!$driver) {
-                return response()->json(['status' => false, 'message' => 'login token error!']);
-            }
+    //         if (Auth::guard('api')->check()) {
+    //             $driver = Auth::guard('api')->user();
+    //         }
+    //         if(!$driver) {
+    //             return response()->json(['status' => false, 'message' => 'login token error!']);
+    //         }
 
-            $parameters = $request->all();
-            extract($parameters);
+    //         $parameters = $request->all();
+    //         extract($parameters);
 
-            if(!isset($driver_id)) {
-                $driver_id = $driver->id;
-            }
+    //         if(!isset($driver_id)) {
+    //             $driver_id = $driver->id;
+    //         }
 
-            $routes = DriverAssignRoutes::where('assigned_driver_id', $driver_id)->get();
-            $response = [];
+    //         $routes = DriverAssignRoutes::where('assigned_driver_id', $driver_id)->get();
+    //         $response = [];
 
-            try {
-                // 
-                $subscriptions = Subscription::all();
-                $response['status'] = "success";
-                $response['message'] = "Routes List!";
-                $response['data'] = $routes;
-            } catch(Exception $e) {
-                $response['status'] = "fail";
-                $response['message'] = "Error: ".$e;
-            }
+    //         try {
+    //             // 
+    //             $subscriptions = Subscription::all();
+    //             $response['status'] = "success";
+    //             $response['message'] = "Routes List!";
+    //             $response['data'] = $routes;
+    //         } catch(Exception $e) {
+    //             $response['status'] = "fail";
+    //             $response['message'] = "Error: ".$e;
+    //         }
             
-            return response()->json($response);
+    //         return response()->json($response);
 
-        } catch(Exception $e) {
-            $response['status'] = "fail";
-            $response['message'] = "Error: ".$e;
-            return response()->json($response);
-        }
-    }
+    //     } catch(Exception $e) {
+    //         $response['status'] = "fail";
+    //         $response['message'] = "Error: ".$e;
+    //         return response()->json($response);
+    //     }
+    // }
 
-    public function getRoutesByDate(Request $request)
-    {
-        // code...
-        try {
+    // public function getRoutesByDate(Request $request)
+    // {
+    //     // code...
+    //     try {
 
-            if (Auth::guard('api')->check()) {
-                $driver = Auth::guard('api')->user();
-            }
-            if(!$driver) {
-                return response()->json(['status' => false, 'message' => 'login token error!']);
-            }
+    //         if (Auth::guard('api')->check()) {
+    //             $driver = Auth::guard('api')->user();
+    //         }
+    //         if(!$driver) {
+    //             return response()->json(['status' => false, 'message' => 'login token error!']);
+    //         }
 
-            $parameters = $request->all();
-            extract($parameters);
+    //         $parameters = $request->all();
+    //         extract($parameters);
 
-            if(!isset($driver_id)) {
-                $driver_id = $driver->id;
-            }
+    //         if(!isset($driver_id)) {
+    //             $driver_id = $driver->id;
+    //         }
 
-            $query = DriverAssignRoutes::where('assigned_driver_id', $driver_id); 
-            $query->where('created_at', '>=', date('Y-m-d').' 00:00:00');
+    //         $query = DriverAssignRoutes::where('assigned_driver_id', $driver_id); 
+    //         $query->where('created_at', '>=', date('Y-m-d').' 00:00:00');
 
-            if(isset($date)) {
-                // 
-                $query->where('route_date', '=', $date);
-            }
-            if (isset($day)) {
-                // code...
-                $query->where('route_day', '=', $day);
-            }
+    //         if(isset($date)) {
+    //             // 
+    //             $query->where('route_date', '=', $date);
+    //         }
+    //         if (isset($day)) {
+    //             // code...
+    //             $query->where('route_day', '=', $day);
+    //         }
 
-            $routes = $query->get();
-            $response = [];
+    //         $routes = $query->get();
+    //         $response = [];
 
-            try {
-                // 
-                $subscriptions = Subscription::all();
-                $response['status'] = "success";
-                $response['message'] = "Routes List!";
-                $response['data'] = $routes;
-            } catch(Exception $e) {
-                $response['status'] = "fail";
-                $response['message'] = "Error: ".$e;
-            }
+    //         try {
+    //             // 
+    //             $subscriptions = Subscription::all();
+    //             $response['status'] = "success";
+    //             $response['message'] = "Routes List!";
+    //             $response['data'] = $routes;
+    //         } catch(Exception $e) {
+    //             $response['status'] = "fail";
+    //             $response['message'] = "Error: ".$e;
+    //         }
             
-            return response()->json($response);
+    //         return response()->json($response);
 
-        } catch(Exception $e) {
-            $response['status'] = "fail";
-            $response['message'] = "Error: ".$e;
-            return response()->json($response);
-        }
-    }
+    //     } catch(Exception $e) {
+    //         $response['status'] = "fail";
+    //         $response['message'] = "Error: ".$e;
+    //         return response()->json($response);
+    //     }
+    // }
 
     public function privacyPolicy()
     {

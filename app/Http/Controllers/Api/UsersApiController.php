@@ -6,30 +6,30 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Auth;
 use App\User;
-use App\SocialAccount;
-use DB;
 
-use App\Helper;
+use Helper;
 use Carbon\Carbon;
 use Hash;
 use App\Mail\UserOtpVerificationMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
-
+// use App\MailTemplate;
 use App\UserVerificationToken;
 
 use App\Mail\UserMail;
 
-class AuthController extends Controller
+class UsersApiController extends Controller
 {
     //
     public function register(Request $request)
     {
 
+        die('dds');
+
         $validator = \Validator::make($request->all() , [
-            // 'name' => 'required',
+            'name' => 'required',
             'email' => 'required|email|unique:users,email', 
-            'password' => 'required|confirmed|string|min:6'
+            'password' => 'required|string|min:6'
         ]);
 
         if ($validator->fails()) {
@@ -83,27 +83,12 @@ class AuthController extends Controller
             'message'=>$message,
         ];
 
-        //  Mail::to($user->email)->send(new UserOtpVerificationMail($config));
-        // $user = Helper::singleUserInfoDataChange($user->id, $user);
-
-        $user = User::where('id','=',$user->id)->first();
-        if($user->name == "" && $user->name == null){
-            $user['isRegistrationComplete'] = false;
-        }
-        else{
-            $user['isRegistrationComplete'] = true;
-        }
-        $user->load('roles');
-        $role = $user->roles[0]->id;
-        unset($user['roles']);
+        Mail::to($user->email)->send(new UserOtpVerificationMail($config));
+        $user = \Helper::singleUserInfoDataChange($user->id, $user);
         return response()->json([
             'status' => true, 
-            'message' => 'Registeration successfully!',
-            'isRegistrationComplete' => $user->isRegistrationComplete,
-            'remember_device' => false, 
-            'token' => $token->accessToken,
-            'role' => $role, 
-            'user_info' => $user,
+            'token' => $token->accessToken, 
+            'data' => $user,
         ]);
         
     }
@@ -151,7 +136,7 @@ class AuthController extends Controller
             $token = $user->createToken($user->id . '-' . now());
 
             $remember_device = false;
-            $remember_devices = json_decode(Helper::getUserMeta($user->id, 'remember_devices', true));
+            $remember_devices = json_decode(\Helper::getUserMeta($user->id, 'remember_devices', true));
             if(empty($remember_devices)) {
                 $remember_device = false;
             } else {
@@ -161,7 +146,7 @@ class AuthController extends Controller
             }
             
             $user->load('roles');
-            $user = Helper::singleUserInfoDataChange($user->id, $user);
+            $user = \Helper::singleUserInfoDataChange($user->id, $user);
             $role = $user->roles[0]->id;
             unset($user['roles']);
             return response()->json([
@@ -172,104 +157,6 @@ class AuthController extends Controller
                 'role' => $role,
                 'user_info' => $user,
             ]);
-        }
-    }
-
-    public function socialLogin(Request $request){
-
-        $validator = \Validator::make($request->all(), [
-            'social_id' => 'required',
-            'social_type' => 'required'
-        ]);
-
-        if ($validator->fails()) {
-            $er = [];
-            $i = 0;
-            foreach ($validator->errors() as $err) {
-                $er[$i++] = $err[0];
-                return $err;
-            }
-
-            return response()->json([
-                'status' => false, 
-                'message' => implode("", $validator->errors()->all()) 
-            ], 200);
-
-        }
-
-        $social_account = SocialAccount::where('social_id', '=', $request->social_id)
-                        ->where('social_type', '=', $request->social_type)
-                        ->first();
-
-        
-
-        if(empty($social_account)){
-            // 
-
-            $getuser = User::where('email', '=', $request->email)->orWhere('phone', '=', $request->phone)->first();
-
-            return response()->json([
-                'status' => false,
-                'message' => 'User not exist please signup first',
-                'data' => []
-            ]);
-            
-        } else {
-            // 
-            if(empty($social_account)) {
-                // 
-                $user_id = $getuser->id;
-                $social_account = SocialAccount::firstOrNew(['user_id' => $user_id, 'social_id' => $request->social_id, 'social_type' => $request->social_type]);
-                $social_account->save();
-                
-            } else {
-                // 
-                $user_id = $social_account['user_id'];
-            }
-            Auth::loginUsingId($user_id);
-            $user = Auth::user(); 
-
-            if (!$user) {
-                return response()->json([
-                    'status' => false, 
-                    'message' => 'Failed to login',
-                    'data'=>[]
-                ]);
-            }
-
-            $user_id = $user->id;
-            $user = User::updateOrCreate([
-                'id' => $user_id,
-            ], [
-                'device_id' => $request->device_id, 
-            ]);
-
-            $token = $user->createToken($user->email . '-' . now());
-
-            $userdata = User::where('id', '=', $user_id)->first();
-
-
-            $userdata->load('roles');
-            // $user = Helper::singleUserInfoDataChange($user->id, $user);
-            $role = $userdata->roles[0]->id;
-            unset($userdata['roles']);
-
-            if($userdata->name == "" && $userdata->name == null){
-                $userdata['isRegistrationComplete'] = false;
-            }
-            else{
-                $userdata['isRegistrationComplete'] = true;
-            }
-            
-            return response()->json([
-                'status' => true, 
-                'message' => 'Logout successfully!',
-                'isUserFound'=>true,
-                'token' => $token->accessToken, 
-                'remember_device' => true,
-                'role' => $role,
-                'user_info' => $userdata,
-            ]); 
         }
     }
 
@@ -288,13 +175,23 @@ class AuthController extends Controller
         $parameters = $request->all();
         extract($parameters);
 
-        $user = Helper::get_user('email', $email); 
+        $user = \Helper::get_user('email', $email); 
         if(!$user) {
             return response()->json(['status'=> false, 'message' => 'Email id not found!']);
         }
 
         $otp = rand(100000, 999999);
-        
+        // try {
+        //     $otp_token = UserVerificationToken::firstOrNew([
+        //         'user_id' => $user->id, 
+        //         'type' => 'forget_password'
+        //     ]);
+        //     $otp_token->otp = $otp;
+        //     $otp_token->expire = Carbon::now()->addMinute(15);
+        //     $otp_token->save();
+        // } catch(Exception $e) {
+        //     return response()->json(['status'=>false, 'message' => 'Error in OTP!']);
+        // }
         $response = [];
 
         if(true) { // $otp_token
@@ -339,7 +236,7 @@ class AuthController extends Controller
             Auth::guard('api')->user()->AauthAcessToken()->delete();
             return response()->json([
                 'status' => true, 
-                // 'token' => '',
+                'token' => '',
                 'message' => 'Logout successfully!',
             ]);
             $user = Auth::user()->token();
@@ -347,7 +244,7 @@ class AuthController extends Controller
         } else {
             return response()->json([
                 'status' => true, 
-                // 'token' => '',
+                'token' => '',
                 'message' => 'Already Logout!',
             ]);
         }

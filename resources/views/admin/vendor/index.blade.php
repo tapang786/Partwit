@@ -4,7 +4,7 @@
     <div style="margin-bottom: 10px;" class="row">
         <div class="col-lg-12">
             @if(request()->is('dashboard/vendor'))
-            <a class="btn btn-success" href="{{ route("admin.vendor-add") }}">
+            <a class="btn btn-success" href="{{ route("admin.users.create") }}">
                 Add vendor
             </a>
             @else
