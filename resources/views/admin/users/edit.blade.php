@@ -50,8 +50,8 @@
             </div>
             <div class="form-group {{ $errors->has('roles') ? 'has-error' : '' }}">
                 <label for="roles">{{ trans('cruds.user.fields.roles') }}*
-                    <span class="btn btn-info btn-xs select-all">{{ trans('global.select_all') }}</span>
-                    <span class="btn btn-info btn-xs deselect-all">{{ trans('global.deselect_all') }}</span></label>
+                    {{-- <span class="btn btn-info btn-xs select-all">{{ trans('global.select_all') }}</span>
+                    <span class="btn btn-info btn-xs deselect-all">{{ trans('global.deselect_all') }}</span> --}}</label>
                 <select name="roles[]" id="roles" class="form-control select2"  required>
                     @foreach($roles as $id => $roles)
                         <option value="{{ $id }}" {{ (in_array($id, old('roles', [])) || isset($user) && $user->roles->contains($id)) ? 'selected' : '' }}>{{ $roles }}</option>
@@ -68,7 +68,7 @@
             </div>
             <div class=" {{ $errors->has('profile_pic') ? 'has-error' : '' }}">
                 <label for="profile_pic">Profile Photo*</label>
-                <input type="file" id="profile_pic" name="profile_pic" class="form-control" value="" {{ isset($user_meta['profile_pic']) ? '' : 'required' }}>
+                <input type="file" id="profile_pic" name="profile_pic" class="form-control" value="" {{ isset($user->profile_pic) ? '' : 'required' }}>
                 @if($errors->has('profile_pic'))
                     <p class="help-block">
                         {{ $errors->first('profile_pic') }}
@@ -77,10 +77,10 @@
                 <p class="helper-block">
                     {{ trans('cruds.advertisement.fields.title_helper') }}
                 </p>
-                @if(isset($user_meta['profile_pic'])) 
-                    <img src="{{ url($user_meta['profile_pic'])}}" width="220">
+                @if(isset($user->profile_pic)) 
+                    <img src="{{ url($user->profile_pic) }}" width="220">
                 @endif
-                <input type="hidden" name="profile_pic_old" value="{{ isset($user_meta['profile_pic']) ? $user_meta['profile_pic'] : '' }}">
+                <input type="hidden" name="profile_pic_old" value="{{ isset($user->profile_pic) ? $user->profile_pic : '' }}">
             </div>
             <div>
                 <input class="btn btn-danger" type="submit" value="{{ trans('global.save') }}">

@@ -4,7 +4,7 @@
 <div class="card">
     <div class="card-header card-header-primary">
         <h4 class="card-title">
-            {{ trans('global.show') }} {{ trans('cruds.user.title') }}
+            {{$title}}
         </h4>
     </div>
 
@@ -13,50 +13,37 @@
             <table class="table table-bordered table-striped">
                 <tbody>
                     <tr>
-                        <th>
-                            {{ trans('cruds.user.fields.id') }}
-                        </th>
-                        <td>
-                            {{ $user->id }}
-                        </td>
+                        <th>Seller {{ trans('cruds.user.fields.id') }}</th>
+                        <td>#{{ $seller->id }}</td>
                     </tr>
                     <tr>
-                        <th>
-                            {{ trans('cruds.user.fields.name') }}
-                        </th>
-                        <td>
-                            {{ $user->name }}
-                        </td>
+                        <th>Seller {{ trans('cruds.user.fields.name') }}</th>
+                        <td>{{ $seller->name }}</td>
                     </tr>
                     <tr>
-                        <th>
-                            {{ trans('cruds.user.fields.email') }}
-                        </th>
-                        <td>
-                            {{ $user->email }}
-                        </td>
+                        <th>Seller {{ trans('cruds.user.fields.email') }}</th>
+                        <td>{{ $seller->email }}</td>
                     </tr>
-
                     <tr>
                         <th>Profile Image</th>
                         <td>
-                            @if(isset($user->profile_pic)) 
-                                <img src="{{ url($user->profile_pic)}}" width="220">
+                            @if(isset($seller->profile_pic)) 
+                                <img src="{{ url($seller->profile_pic)}}" width="220">
                             @else
                                 -
                             @endif
                         </td>
                     </tr>
-                    <tr>
+                    {{-- <tr>
                         <th>
                             Roles
                         </th>
                         <td>
-                            @foreach($user->roles as $id => $roles)
+                            @foreach($seller->roles as $id => $roles)
                                 <span class="label label-info label-many">{{ $roles->title }}</span>
                             @endforeach
                         </td>
-                    </tr>
+                    </tr> --}}
                 </tbody>
             </table>
             <a style="margin-top:20px;" class="btn btn-default" href="{{ url()->previous() }}">

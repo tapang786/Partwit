@@ -26,7 +26,10 @@ class UsersController extends Controller
                         // ->select('users.*')
                         ->get();
 
-        return view('admin.users.index', compact('users'));
+        $data['title'] = 'Users';
+        $data['users'] = $users;
+
+        return view('admin.users.index', $data);
     }
 
     public function create()
@@ -35,7 +38,9 @@ class UsersController extends Controller
 
         $roles = Role::all()->pluck('title', 'id');
 
-        return view('admin.users.create', compact('roles'));
+        $data['title'] = 'Add User';
+        $data['roles'] = $roles;
+        return view('admin.users.create', $data);
     }
 
     public function store(StoreUserRequest $request)
@@ -49,7 +54,10 @@ class UsersController extends Controller
             $fileName = time().'_'.$user->id.'_'.$request->profile_pic->getClientOriginalName();
             $request->profile_pic->move(base_path('images'), $fileName);
 
-            Helper::update_user_meta($user->id, 'profile_pic', 'images/'.$fileName);
+            // Helper::update_user_meta($user->id, 'profile_pic', 'images/'.$fileName);
+
+            $user->profile_pic = 'images/'.$fileName;
+            $user->save();
         }
 
         return redirect()->route('admin.users.index');
@@ -113,7 +121,9 @@ class UsersController extends Controller
             $fileName = $request->profile_pic_old;
         }
 
-        Helper::update_user_meta($user->id, 'profile_pic', $fileName);
+        // Helper::update_user_meta($user->id, 'profile_pic', $fileName);
+        $user->profile_pic = $fileName;
+        $user->save();
 
         return redirect()->route('admin.users.index');
 
@@ -125,20 +135,20 @@ class UsersController extends Controller
 
         $user->load('roles');
 
-        return view('admin.users.show', compact('user'));
+        $data['title'] = 'User';
+        $data['user'] = $user;
+        return view('admin.users.show', $data);
     }
 
     public function isenable($id){
 
         $user = User::where('id','=',$id)->first();
 
-      User::where('id','=',$id)->update([
+        User::where('id','=',$id)->update([
+            'is_enable' => ($user->is_enable == 1) ? 0 : 1
+        ]);
 
-        'is_enable' => ($user->is_enable == 1) ? 0 : 1
-
-      ]);
-
-      return redirect()->route('admin.users.index');
+        return redirect()->back()->with('success', 'Updated!');   
 
     }
 
@@ -157,61 +167,6 @@ class UsersController extends Controller
         User::whereIn('id', request('ids'))->delete();
 
         return response(null, Response::HTTP_NO_CONTENT);
-
-    }
-
-    public function showVendor(){
-
-        $users = User::join('role_user', 'role_user.user_id', '=', 'users.id')
-        ->where('role_user.role_id', '=', '3')
-        ->get();
-
-        return view('admin.users.index', compact('users'));
-
-    }
-
-    public function addVendor(Request $request){
-
-        $d['title'] = 'Create Vendor';
-
-       
-        return view('admin.vendor.create',$d);
-
-
-    }
-
-    public function storeVendor(Request $request){
-
-        $vendor = User::create([
-
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password,
-        ]);
-
-        $vendruser = User::where('id','=',$vendor['id'])->first();
-
-        $vendruser->roles()->sync(3);
-
-        if ($files1    =    $request->file('profile_pic')) {
-            $name_3   =    uniqid() . $files1->getClientOriginalName();
-            $files1->move('images/profile', $name_3);
-            $vendruser->update([
-                'profile_image' => $name_3,
-            ]);
-         }
-
-         if ($files2    =    $request->file('banner_pic')) {
-            $name_2   =    uniqid() . $files1->getClientOriginalName();
-            $files2->move('images/banner', $name_2);
-            $vendruser->update([
-                'banner_image' => $name_2,
-            ]);
-         }
-
-       
-         return redirect()->route('admin.vendor');
-
 
     }
 

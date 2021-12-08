@@ -5,7 +5,7 @@
         <div class="col-lg-12">
             @if(request()->is('dashboard/vendor'))
             <a class="btn btn-success" href="{{ route("admin.users.create") }}">
-                Add vendor
+                Add Seller
             </a>
             @else
             <a class="btn btn-success" href="{{ route("admin.users.create") }}">
@@ -28,24 +28,12 @@
             <table class=" table table-striped table-hover datatable datatable-User">
                 <thead>
                     <tr>
-                        <th width="10">
-
-                        </th>
-                        <th>
-                            {{ trans('cruds.user.fields.id') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.user.fields.name') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.user.fields.email') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.user.fields.email_verified_at') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.user.fields.roles') }}
-                        </th>
+                        <th width="10"></th>
+                        <th>{{ trans('cruds.user.fields.id') }}</th>
+                        <th>{{ trans('cruds.user.fields.name') }}</th>
+                        <th>{{ trans('cruds.user.fields.email') }}</th>
+                        <th>{{ trans('cruds.user.fields.email_verified_at') }}</th>
+                        <th>{{ trans('cruds.user.fields.roles') }}</th>
                         <th>
                             &nbsp;
                         </th>
@@ -156,7 +144,7 @@
 
   $.extend(true, $.fn.dataTable.defaults, {
     order: [[ 1, 'desc' ]],
-    pageLength: 100,
+    pageLength: 10,
   });
   $('.datatable-User:not(.ajaxTable)').DataTable({ buttons: dtButtons })
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){

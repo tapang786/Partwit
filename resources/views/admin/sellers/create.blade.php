@@ -4,7 +4,7 @@
 <div class="card">
     <div class="card-header card-header-primary">
         <h4 class="card-title">
-            {{ trans('global.create') }} {{ trans('cruds.user.title_singular') }}
+            Add Seller
         </h4>
     </div>
 
@@ -47,16 +47,15 @@
                     {{ trans('cruds.user.fields.password_helper') }}
                 </p>
             </div>
-            <div class="form-group {{ $errors->has('roles') ? 'has-error' : '' }}">
-                <label for="roles">{{ trans('cruds.user.fields.roles') }}*
-                    {{-- <span class="btn btn-info btn-xs select-all">{{ trans('global.select_all') }}</span>
-                    <span class="btn btn-info btn-xs deselect-all">{{ trans('global.deselect_all') }}</span> --}}
-                </label>
+            <input type="hidden" name="roles[]" value="3">
+            {{-- <div class="form-group {{ $errors->has('roles') ? 'has-error' : '' }}">
+                
                 <select name="roles[]" id="roles" class="form-control select2"  required>
                     @foreach($roles as $id => $roles)
                         <option value="{{ $id }}" {{ (in_array($id, old('roles', [])) || isset($user) && $user->roles->contains($id)) ? 'selected' : '' }}>{{ $roles }}</option>
                     @endforeach
                 </select>
+
                 @if($errors->has('roles'))
                     <p class="help-block">
                         {{ $errors->first('roles') }}
@@ -65,7 +64,7 @@
                 <p class="helper-block">
                     {{ trans('cruds.user.fields.roles_helper') }}
                 </p>
-            </div>
+            </div> --}}
             <div class="{{ $errors->has('profile_pic') ? 'has-error' : '' }}">
                 <label for="profile_pic">Profile Photo*</label>
                 <input type="file" id="profile_pic" name="profile_pic" class="form-control" value="" {{ isset($profile->profile_pic) ? '' : 'required' }}>

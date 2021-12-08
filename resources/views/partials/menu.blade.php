@@ -48,6 +48,15 @@
                             </a>
                         </li>
                         @endcan
+
+                        @can('category_management_access')
+                        <li class="nav-item {{ request()->is('dashboard/attributes') || request()->is('dashboard/attributes/*') ? 'active' : '' }}">
+                            <a href="{{ route("admin.attributes.index") }}" class="nav-link " class="nav-link" >
+                                <i class="fas fa-list-alt"></i> 
+                                <span>Attributes</span>
+                            </a>
+                        </li>
+                        @endcan
                         
                     </ul>
                 </div>
@@ -74,7 +83,7 @@
                             <b class="caret"></b>
                         </p>
                     </a>
-                    <div class="collapse {{ request()->is('dashboard/users') || request()->is('dashboard/users/*') || request()->is('dashboard/roles') || request()->is('dashboard/roles/*') || request()->is('dashboard/permissions') || request()->is('dashboard/permissions/*') ? 'show' : '' }}" id="user_management">
+                    <div class="collapse {{ request()->is('dashboard/sellers') || request()->is('dashboard/sellers/*') || request()->is('dashboard/users') || request()->is('dashboard/users/*') || request()->is('dashboard/roles') || request()->is('dashboard/roles/*') || request()->is('dashboard/permissions') || request()->is('dashboard/permissions/*') ? 'show' : '' }}" id="user_management">
                         <ul class="nav">
                             
                             @can('user_access')
@@ -82,6 +91,15 @@
                                     <a href="{{ route("admin.users.index") }}" class="nav-link">
                                         <i class="fa-fw fas fa-user"></i>
                                         <span>{{ trans('cruds.user.title') }}</span>
+                                    </a>
+                                </li>
+                            @endcan
+
+                            @can('seller_access')
+                                <li class="nav-item {{ request()->is('dashboard/sellers') || request()->is('dashboard/sellers/*') ? 'active' : '' }}">
+                                    <a href="{{ route("admin.sellers.index") }}" class="nav-link">
+                                        <i class="fas fa-store-alt"></i>
+                                        <span>Sellers</span>
                                     </a>
                                 </li>
                             @endcan
@@ -104,14 +122,7 @@
                                 </li>
                             @endcan
 
-                            @can('role_access')
-                                <li class="nav-item {{ request()->is('dashboard/vendor') || request()->is('dashboard/vendor/*') ? 'active' : '' }}">
-                                    <a href="{{ route("admin.vendor") }}" class="nav-link">
-                                        <i class="fa-fw fas fa-briefcase"></i>
-                                        <span>Sellers</span>
-                                    </a>
-                                </li>
-                            @endcan
+                            
                             
                         </ul>
                     </div>

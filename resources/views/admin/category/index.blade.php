@@ -28,17 +28,15 @@
                             id
                         </th>
                         <th>
-                            Attribute Name
+                        Category Name
                         </th>
-                        <th>
-                            Category
-                        </th>
-                        <th>
-                           Attributes Value
-                        </th>
+                        {{-- <th>
+                        Parent Category
+                        </th> --}}
+                      
                         @can('cat_add')
                         <th>
-                           Add Attribute
+                          Attributes
                         </th>
                         @endcan
                         <th>
@@ -51,7 +49,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($Attributes as $key => $attr)
+                    @foreach($Categories as $key => $attr)
                         <tr data-entry-id="{{ $attr->id }}">
                             <td>
 
@@ -62,15 +60,10 @@
                             <td>
                                 {{ $attr->title ?? '' }}
                             </td>
-                            <td>
-                            {{ $attr->name ?? '' }}
-                            </td>
-                            <td>
-                                @foreach($attr->atrVal as  $v)
-
-                                <span>{{ $v->title ?? '' }},</span>
-                               @endforeach
-                            </td>
+                            {{-- <td>
+                            </td> --}}
+                           
+                           
                             @can('cat_add')
                             <td>
                                     <a class="btn btn-xs btn-success" href="{{ route('admin.attributes.create') }}">
@@ -161,7 +154,7 @@ table.dataTable tbody td.select-checkbox:before {
 
   $.extend(true, $.fn.dataTable.defaults, {
     order: [[ 1, 'desc' ]],
-    pageLength: 100,
+    pageLength: 10,
   });
   $('.datatable-User:not(.ajaxTable)').DataTable({ buttons: dtButtons })
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){

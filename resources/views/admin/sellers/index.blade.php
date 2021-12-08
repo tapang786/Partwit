@@ -3,8 +3,8 @@
 @can('user_create')
     <div style="margin-bottom: 10px;" class="row">
         <div class="col-lg-12">
-            <a class="btn btn-success" href="{{ route("admin.attributes.create") }}">
-              Add Attribute
+            <a class="btn btn-success" href="{{ route("admin.sellers.create") }}">
+            {{ trans('global.add') }} Seller
             </a>
         </div>
     </div>
@@ -12,7 +12,7 @@
 <div class="card">
     <div class="card-header card-header-primary">
         <h4 class="card-title">
-        {{$title}}  
+            Sellers {{ trans('global.list') }}
         </h4>
     </div>
 
@@ -21,62 +21,48 @@
             <table class=" table table-striped table-hover datatable datatable-User">
                 <thead>
                     <tr>
-                        <th width="10">
-
-                        </th>
-                        <th>id</th>
-                        <th>Attribute Name</th>
-                        <th>Attribute Category</th>
-                        <th>Values</th>
-                        <th>Add Values</th>
-                        <th>Action</th>
-                        <th> </th>
+                        <th width="10"></th>
+                        <th>{{ trans('cruds.user.fields.id') }}</th>
+                        <th>{{ trans('cruds.user.fields.name') }}</th>
+                        <th>{{ trans('cruds.user.fields.email') }}</th>
+                        <th>Status</th>
+                        {{-- <th>{{ trans('cruds.user.fields.roles') }}</th> --}}
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($Attributes as $key => $attr)
-                        <tr data-entry-id="{{ $attr->id }}">
+                    @foreach($sellers as $key => $seller)
+                        <tr data-entry-id="{{ $seller->id }}">
+                            <td> </td>
+                            <td>{{ $seller->id ?? '' }}</td>
+                            <td>{{ $seller->name ?? '' }}</td>
+                            <td>{{ $seller->email ?? '' }}</td>
                             <td>
-
+                                @can('user_edit')
+                                    @if($seller->is_enable == 1)
+                                    <a class="btn btn-xs btn-info" href="{{ route('admin.users-enable', $seller->id) }}">Disable
+                                    </a>
+                                    @else
+                                    <a class="btn btn-xs btn-info" href="{{ route('admin.users-enable', $seller->id) }}">Enable
+                                    </a>
+                                    @endif
+                                @endcan
                             </td>
-                            <td>
-                                {{ $attr->id ?? '' }}
-                            </td>
-                            <td>
-                                {{ $attr->title ?? '' }}
-                            </td>
-                            <td>
-                            {{ $attr->name ?? '' }}
-                            </td>
-                            <td>
-                                @foreach($attr->atrVal as $val)
-                                    <spna> {{ $val->title ?? '' }},</sapn>
-                                @endforeach
-                            </td>
-                           
-                            @can('cat_add')
-                            <td>
-                                <a class="btn btn-xs btn-success" href="{{ route('admin.attribute-value.create') }}">
-                                   add value
-                                </a>
-                            </td>
-                            @endcan
-                            
                             <td>
                                 @can('user_show')
-                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.attributes.show',$attr->id) }}">
+                                    <a class="btn btn-xs btn-primary" href="{{ route('admin.sellers.show', $seller->id) }}">
                                         {{ trans('global.view') }}
                                     </a>
                                 @endcan
 
                                 @can('user_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.attributes.edit', $attr->id) }}">
+                                    <a class="btn btn-xs btn-info" href="{{ route('admin.sellers.edit', $seller->id) }}">
                                         {{ trans('global.edit') }}
                                     </a>
                                 @endcan
 
                                 @can('user_delete')
-                                    <form action="{{ route('admin.attributes.destroy', $attr->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                                    <form action="{{ route('admin.sellers.destroy', $seller->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
                                         <input type="hidden" name="_method" value="DELETE">
                                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                         <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
@@ -92,19 +78,6 @@
         </div>
     </div>
 </div>
-<style>
-    table.dataTable tbody td.select-checkbox:before, table.dataTable tbody th.select-checkbox:before {
-    content: ' ';
-    margin-top: -6px;
-    margin-left: -6px;
-    border: 1px solid black;
-    border-radius: 3px;
-}
-table.dataTable tbody td.select-checkbox:before {
-    display:none
-
-}
-</style>
 @endsection
 @section('scripts')
 @parent
@@ -115,7 +88,7 @@ table.dataTable tbody td.select-checkbox:before {
   let deleteButtonTrans = '{{ trans('global.datatables.delete') }}'
   let deleteButton = {
     text: deleteButtonTrans,
-    url: "{{ route('admin.users.massDestroy') }}",
+    url: "{{ route('admin.sellers.massDestroy') }}",
     className: 'btn-danger',
     action: function (e, dt, node, config) {
       var ids = $.map(dt.rows({ selected: true }).nodes(), function (entry) {
@@ -143,7 +116,7 @@ table.dataTable tbody td.select-checkbox:before {
 
   $.extend(true, $.fn.dataTable.defaults, {
     order: [[ 1, 'desc' ]],
-    pageLength: 100,
+    pageLength: 10,
   });
   $('.datatable-User:not(.ajaxTable)').DataTable({ buttons: dtButtons })
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){

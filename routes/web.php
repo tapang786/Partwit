@@ -16,13 +16,19 @@ Route::group(['prefix' => 'dashboard', 'as' => 'admin.', 'namespace' => 'Admin',
 
     // Users
     Route::delete('users/destroy', 'UsersController@massDestroy')->name('users.massDestroy');
-    Route::get('users-enable/{id}', 'UsersController@isenable')->name('users-enable');
     Route::resource('users', 'UsersController');
 
-    Route::get('vendor', 'UsersController@showVendor')->name('vendor');
+    // Sellers
+    Route::delete('sellers/destroy', 'SellersController@massDestroy')->name('sellers.massDestroy');
+    Route::resource('sellers', 'SellersController');
 
-    Route::get('vendor-add', 'UsersController@addVendor')->name('vendor-add');
-    Route::post('vendor-store', 'UsersController@storeVendor')->name('vendor-store');
+    // Enable Disable User
+    Route::get('users-enable/{id}', 'UsersController@isenable')->name('users-enable');
+    
+    // Route::get('seller', 'UsersController@showVendor')->name('seller');
+
+    // Route::get('vendor-add', 'UsersController@addVendor')->name('vendor-add');
+    // Route::post('vendor-store', 'UsersController@storeVendor')->name('vendor-store');
 
 
     // Products
