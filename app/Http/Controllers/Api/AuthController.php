@@ -83,7 +83,7 @@ class AuthController extends Controller
             'message'=>$message,
         ];
 
-        //  Mail::to($user->email)->send(new UserOtpVerificationMail($config));
+        Mail::to($user->email)->send(new UserOtpVerificationMail($config));
         // $user = Helper::singleUserInfoDataChange($user->id, $user);
 
         $user = User::where('id','=',$user->id)->first();
@@ -164,12 +164,21 @@ class AuthController extends Controller
             $user = Helper::singleUserInfoDataChange($user->id, $user);
             $role = $user->roles[0]->id;
             unset($user['roles']);
+
+            // if($user->name == "" && $user->name == null){
+            //     $user['isRegistrationComplete'] = false;
+            // }
+            // else{
+            //     $user['isRegistrationComplete'] = true;
+            // }
+
             return response()->json([
                 'status' => true, 
                 'message' => 'Login success!',
                 'token' => $token->accessToken, 
                 'remember_device' => $remember_device,
                 'role' => $role,
+                'isRegistrationComplete' => ($user->isRegistrationComplete)?true:false,
                 'user_info' => $user,
             ]);
         }

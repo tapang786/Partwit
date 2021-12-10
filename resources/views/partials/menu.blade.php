@@ -64,6 +64,17 @@
             @endcan
             
 
+            @can('page_access')
+            <li class="nav-item {{ request()->is('dashboard/pages') || request()->is('dashboard/pages/*') ? 'active' : '' }}">
+                <a href="{{ route("admin.pages.index") }}" class="nav-link" class="nav-link" >
+                    <p>
+                        <i class="fas fa-file-alt"></i>
+                        <span>Pages</span>
+                    </p>
+                </a>
+            </li>
+            @endcan
+
             @can('user_management_access')
             <li class="nav-item {{ request()->is('dashboard/subscription') || request()->is('dashboard/subscription/*') ? 'active' : '' }}">
                 <a href="{{ route("admin.subscription.index") }}" class="nav-link" class="nav-link" >
@@ -74,6 +85,7 @@
                 </a>
             </li>
             @endcan
+
             @can('user_management_access')
                 <li class="nav-item has-treeview {{ request()->is('dashboard/permissions*') ? 'menu-open' : '' }} {{ request()->is('dashboard/roles*') ? 'menu-open' : '' }} {{ request()->is('dashboard/users*') ? 'menu-open' : '' }}">
                     <a class="nav-link" data-toggle="collapse" href="#user_management">
@@ -95,15 +107,15 @@
                                 </li>
                             @endcan
 
-                            @can('seller_access')
+                            {{-- @can('seller_access')
                                 <li class="nav-item {{ request()->is('dashboard/sellers') || request()->is('dashboard/sellers/*') ? 'active' : '' }}">
                                     <a href="{{ route("admin.sellers.index") }}" class="nav-link">
                                         <i class="fas fa-store-alt"></i>
                                         <span>Sellers</span>
                                     </a>
                                 </li>
-                            @endcan
-
+                            @endcan --}}
+                            
                             @can('permission_access')
                                 <li class="nav-item {{ request()->is('dashboard/permissions') || request()->is('dashboard/permissions/*') ? 'active' : '' }}">
                                     <a href="{{ route("admin.permissions.index") }}" class="nav-link">

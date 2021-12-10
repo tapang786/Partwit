@@ -124,7 +124,7 @@ class Helper
         $metadetail = Helper::getUserMeta($user_id);
         foreach ($metadetail as $key => $value) {
             // code...
-            if("profile_images" != $key) {
+            if("profile_pic" != $key) {
                 $values[$key] = $value;
             }
         }
@@ -136,7 +136,7 @@ class Helper
         //     $values['subscription'] = 'premium';
         // }
 
-        $values['profile_pic'] = (Helper::getUserMeta($user_id, 'profile_pic', true) != "")?url(Helper::getUserMeta($user_id, 'profile_pic', true)):url('images/placeholder.png');
+        $values['profile_pic'] = ($values['profile_pic'] != "")?url($values['profile_pic']):url('images/placeholder.png');
         
         return $values;
     }

@@ -17,92 +17,75 @@
     </div>
 
     <!-- Page tabs -->
-<div class="tabbable page-tabs">
-    
-    <div class="tab-content">
+<div class="card-body">
+        <div class="table-responsive">
+            <table class=" table table-striped table-hover datatable datatable-subscription">
+                <thead>
+                    <tr>
+                        <th width="10">
 
-        <!-- First tab content -->
-        <div class="tab-pane active fade in" id="inside">
+                        </th>
+                        <th>
+                            {{ trans('cruds.advertisement.fields.id') }}
+                        </th>
+                        <th>
+                            {{ trans('cruds.advertisement.fields.title') }}
+                        </th>
+                        <!-- <th>
+                            {{ trans('cruds.advertisement.fields.banner_image') }}
+                        </th> -->
+                        <th>
+                            {{ trans('cruds.advertisement.fields.status') }}
+                        </th>
+                        <th>
+                            {{ __('Created At') }}
+                        </th>
+                        <th>
+                            &nbsp;
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($pages as $key => $page)
+                        <tr data-entry-id="{{ $page->id }}">
+                            <td>
 
-            <!-- Bordered datatable inside panel -->
-            <div class="panel panel-default">
-                <div class="panel-heading"><h6 class="panel-title"><i class="icon-file"></i> Pages</h6></div>
-                <div class="datatable">
+                            </td>
+                            <td>
+                                {{ $page->id ?? '' }}
+                            </td>
+                            <td>
+                                {{ ucwords($page->title ?? '') }}
+                            </td>
+                            
+                            <td>
+                                {{ ucwords($page->status) }}
+                            </td>
+                            <td>
+                                {{ \Carbon\Carbon::parse($page->created_at)->format('d/m/Y')}}
+                            </td>
+                            <td>
 
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th width="10">
+                                <a class="btn btn-xs btn-info" href="{{ route('admin.pages.edit', $page->id) }}">
+                                    {{ trans('global.edit') }}
+                                </a>
+                                @if($page->id > 2)
+                                
+                                <form action="{{ route('admin.pages.destroy', $page->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                    <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
+                                </form>
+                                
+                                @endif
+                            </td>
 
-                                </th>
-                                <th>
-                                    {{ trans('cruds.advertisement.fields.id') }}
-                                </th>
-                                <th>
-                                    {{ trans('cruds.advertisement.fields.title') }}
-                                </th>
-                                <!-- <th>
-                                    {{ trans('cruds.advertisement.fields.banner_image') }}
-                                </th> -->
-                                <th>
-                                    {{ trans('cruds.advertisement.fields.status') }}
-                                </th>
-                                <th>
-                                    {{ __('Created At') }}
-                                </th>
-                                <th>
-                                    &nbsp;
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($pages as $key => $page)
-                                <tr data-entry-id="{{ $page->id }}">
-                                    <td>
-
-                                    </td>
-                                    <td>
-                                        {{ $page->id ?? '' }}
-                                    </td>
-                                    <td>
-                                        {{ ucwords($page->title ?? '') }}
-                                    </td>
-                                    
-                                    <td>
-                                        {{ ucwords($page->status) }}
-                                    </td>
-                                    <td>
-                                        {{ \Carbon\Carbon::parse($page->created_at)->format('d/m/Y')}}
-                                    </td>
-                                    <td>
-
-                                        <a class="btn btn-xs btn-info" href="{{ route('admin.pages.edit', $page->id) }}">
-                                            {{ trans('global.edit') }}
-                                        </a>
-                                        @if($page->id > 2)
-                                        
-                                        <form action="{{ route('admin.pages.destroy', $page->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
-                                            <input type="hidden" name="_method" value="DELETE">
-                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                            <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
-                                        </form>
-                                        
-                                        @endif
-                                    </td>
-
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <!-- /bordered datatable inside panel -->
-
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-        <!-- /first tab content -->
-
     </div>
-
 </div>
 <!-- /page tabs -->
 @endsection
@@ -143,7 +126,7 @@
 
   $.extend(true, $.fn.dataTable.defaults, {
     order: [[ 1, 'desc' ]],
-    pageLength: 100,
+    pageLength: 10,
   });
   $('.datatable-pages:not(.ajaxTable)').DataTable({ buttons: dtButtons })
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e){

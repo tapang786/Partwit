@@ -19,7 +19,7 @@ class PagesController extends Controller
     public function index()
     {
         //
-        // abort_if(Gate::denies('advertisement_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('page_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $pages = Posts::where('type', 'page')->get();
         $data['title'] = 'Pages';
         $data['pages'] = $pages;
@@ -35,7 +35,7 @@ class PagesController extends Controller
     public function create()
     {
         //
-        // abort_if(Gate::denies('advertisement_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('page_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $data['title'] = 'New Pages';
         return view('admin.pages.create', $data);
     }
@@ -103,7 +103,7 @@ class PagesController extends Controller
     public function edit($id)
     {
         //
-        // abort_if(Gate::denies('advertisement_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('page_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $page = Posts::where('id', $id)->first();
         $data['title'] = 'Edit Page';
@@ -132,7 +132,7 @@ class PagesController extends Controller
     public function destroy($id)
     {
         //
-        //abort_if(Gate::denies('advertisement_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('page_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
         $page = Posts::where('id', $id)->first();
         $page->delete();
 

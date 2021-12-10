@@ -35,6 +35,9 @@ Route::group(['prefix' => 'dashboard', 'as' => 'admin.', 'namespace' => 'Admin',
     Route::resource('products', 'ProductsController');
     Route::delete('products/destroy', 'SubscriptionController@massDestroy')->name('products.massDestroy');
 
+    // Pages
+    Route::delete('pages/destroy', 'PagesController@massDestroy')->name('pages.massDestroy');
+    Route::resource('pages', 'PagesController');
 
     //Category
     Route::resource('category', 'CategoryController');
@@ -50,5 +53,7 @@ Route::group(['prefix' => 'dashboard', 'as' => 'admin.', 'namespace' => 'Admin',
     Route::resource('subscription', 'SubscriptionController');
     Route::delete('subscription/destroy', 'SubscriptionController@massDestroy')->name('subscription.massDestroy');
 
-
 });
+
+Route::get('ckeditor', 'CkeditorController@index');
+Route::post('ckeditor/upload', 'CkeditorController@upload')->name('ckeditor.upload');
