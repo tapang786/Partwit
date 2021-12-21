@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Advertisement;
+use App\Reports;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
 
 
-class AdvertisementController extends Controller
+class ReportsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -19,9 +19,18 @@ class AdvertisementController extends Controller
     public function index()
     {
         //
-        abort_if(Gate::denies('advertisement_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $advertisements = Advertisement::all();
-        return view('admin.advertisement.index', compact('advertisements'));
+        abort_if(Gate::denies('reports_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+
+        $reports = Reports::all();
+        $data['title'] = 'Reports';
+        $data['reports'] = $reports;
+        // dd(json_decode($reports[0]->extra_data)->product);
+        foreach ($reports as $key => $value) {
+            // code...
+            $reports[$key]->extra_data = json_decode($value->extra_data);
+        }
+        // dd($reports);
+        return view('admin.reports.index', $data);
     }
 
     /**
@@ -32,9 +41,9 @@ class AdvertisementController extends Controller
     public function create()
     {
         //
-        abort_if(Gate::denies('advertisement_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('reports_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        return view('admin.advertisement.create');
+        return view('admin.reports.create');
     }
 
     /**
@@ -65,7 +74,7 @@ class AdvertisementController extends Controller
             $fileName = $request->banner_image_old;
         }
 
-        $advertisement = Advertisement::updateOrCreate(
+        $report = Reports::updateOrCreate(
             [ 'id' => $request->id ],
             [
                 'title' => $request->title, 
@@ -77,7 +86,7 @@ class AdvertisementController extends Controller
             ]
         );
 
-        return redirect()->route('admin.advertisement.index');
+        return redirect()->route('admin.reports.index');
     }
 
     /**
@@ -100,11 +109,14 @@ class AdvertisementController extends Controller
     public function edit($id)
     {
         //
-        abort_if(Gate::denies('advertisement_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('reports_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $advertisement = Advertisement::where('id', $id)->first();
+        $report = Reports::where('id', $id)->first();
 
-        return view('admin.advertisement.create', compact('advertisement'));
+        $data['title'] = 'Edit Report';
+        $data['report'] = $report;
+            
+        return view('admin.reports.create', $data);
     }
 
     /**
@@ -128,7 +140,7 @@ class AdvertisementController extends Controller
     public function destroy(Advertisement $advertisement)
     {
         //
-        abort_if(Gate::denies('advertisement_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('reports_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $advertisement->delete();
 

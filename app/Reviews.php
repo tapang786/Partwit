@@ -6,12 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Advertisement extends Model
+class Reviews extends Model
 {
     use HasFactory;
     // use SoftDeletes;
 
-    public $table = 'advertisement';
+    public $table = 'seller_reviews';
 
     protected $dates = [
         'created_at',
@@ -20,12 +20,11 @@ class Advertisement extends Model
     ];
 
     protected $fillable = [
-        'title',
+        'seller_id',
+        'user_id',
+        'stars',
         'description',
-        'banner_image',
-        'status',
-        'start_at',
-        'end_at',
+        'extra_data',
         'created_at',
         'updated_at',
         'deleted_at',

@@ -19,8 +19,8 @@ Route::group(['prefix' => 'dashboard', 'as' => 'admin.', 'namespace' => 'Admin',
     Route::resource('users', 'UsersController');
 
     // Sellers
-    Route::delete('sellers/destroy', 'SellersController@massDestroy')->name('sellers.massDestroy');
-    Route::resource('sellers', 'SellersController');
+    Route::delete('sub-admins/destroy', 'SubAdminController@massDestroy')->name('sub-admins.massDestroy');
+    Route::resource('sub-admins', 'SubAdminController');
 
     // Enable Disable User
     Route::get('users-enable/{id}', 'UsersController@isenable')->name('users-enable');
@@ -33,7 +33,12 @@ Route::group(['prefix' => 'dashboard', 'as' => 'admin.', 'namespace' => 'Admin',
 
     // Products
     Route::resource('products', 'ProductsController');
-    Route::delete('products/destroy', 'SubscriptionController@massDestroy')->name('products.massDestroy');
+    Route::delete('products/destroy', 'ProductsController@massDestroy')->name('products.massDestroy');
+
+
+    // Products Reports
+    Route::resource('reports', 'ReportsController');
+    Route::delete('reports/destroy', 'ReportsController@massDestroy')->name('reports.massDestroy');
 
     // Pages
     Route::delete('pages/destroy', 'PagesController@massDestroy')->name('pages.massDestroy');

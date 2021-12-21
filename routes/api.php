@@ -15,6 +15,8 @@ Route::post('logout', 'Api\\AuthController@logoutApi');
 // Forgot Pass
 Route::post('forgot-password', 'Api\\AuthController@forgotPassword');
 
+
+
 // Verify OTP
 Route::post('verify-otp', [HomeController::class, 'verifyOTP']);
 
@@ -30,11 +32,16 @@ Route::post('verify-forget-password-otp', [HomeController::class, 'verifyForgetP
 // Change Forget Password
 Route::post('change-forget-password', [HomeController::class, 'changeForgetPassword']);
 
+Route::post('product-add', [ProductController::class, 'create']);
+
 // Privacy Policy
 Route::get('privacy-policy', [HomeController::class, 'privacyPolicy']);
 
 // Terms & Conditions
 Route::get('terms-conditions', [HomeController::class, 'termsConditions']);
+
+// About PartWit
+Route::get('about-partwit', [HomeController::class, 'AboutPartwit']);
 
 Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', 'middleware' => ['auth:api']], function () {
     // Permissions
@@ -53,12 +60,36 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     Route::post('change-password', [HomeController::class, 'changeUserPassword']);
 
     // Products Controller
-    Route::apiResource('products', 'ProductsController');
+    // Route::apiResource('products', 'ProductsController');
 
     // Update User
     Route::post('update-user-data', [HomeController::class, 'saveUserDetails']);
 
     // Users - My Profile M1
     Route::get('my-profile', [HomeController::class, 'myProfile']);
+
+    // Home Page
+    Route::get('home-page', [HomeController::class, 'HomePage']);
+
+    //Product Add / Edit
+    Route::post('product-add', [ProductsController::class, 'create']); 
+
+    // Show Product
+    Route::post('product-show', [ProductsController::class, 'show']); 
+
+    // Report Reasons
+    Route::get('report-reasons', [HomeController::class, 'reportReasons']);
+
+    // Report a Product
+    Route::post('report-product', [ProductsController::class, 'ReportProduct']);
+
+    // Seller Reviews
+    Route::post('seller-reviews', [HomeController::class, 'SellerReviews']); 
+
+    // Add Seller Reviews
+    Route::post('add-seller-reviews', [HomeController::class, 'AddSellerReviews']);
+
+    // Search Product
+    Route::post('search', [HomeController::class, 'SearchProduct']); 
 
 });

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Subscription;
+use App\Product;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -19,9 +19,14 @@ class ProductsController extends Controller
     public function index()
     {
         //
-        abort_if(Gate::denies('subscription_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-        $subscriptions = Subscription::all();
-        return view('admin.subscription.index', compact('subscriptions'));
+        abort_if(Gate::denies('product_management_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        $products = Product::join('users','users.id','=','products.seller_id')
+                        ->select('products.*', 'users.name as seller')
+                        ->get();
+
+        $data['title'] = 'Products';
+        $data['products'] = $products;
+        return view('admin.products.index', $data);
     }
 
     /**
@@ -32,9 +37,9 @@ class ProductsController extends Controller
     public function create()
     {
         //
-        abort_if(Gate::denies('subscription_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('product_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        return view('admin.subscription.create');
+        return view('admin.products.create');
     }
 
     /**
@@ -53,10 +58,10 @@ class ProductsController extends Controller
 
         if(isset($request->banner_image)) {
             $fileName = time().'_banner_'.$request->banner_image->getClientOriginalName();
-            $request->banner_image->move(base_path('images/banners'), $fileName);
+            $request->banner_image->move(base_path('images/product'), $fileName);
 
-            if(file_exists(base_path('images/banners/'.$request->banner_image_old)) && isset($request->banner_image_old)) { 
-                unlink(base_path('images/banners/'.$request->banner_image_old));
+            if(file_exists(base_path('images/product/'.$request->banner_image_old)) && isset($request->banner_image_old)) { 
+                unlink(base_path('images/product/'.$request->banner_image_old));
             }
 
         } else {
@@ -74,7 +79,7 @@ class ProductsController extends Controller
             ]
         );
 
-        return redirect()->route('admin.subscription.index');
+        return redirect()->route('admin.products.index');
     }
 
     /**
@@ -97,11 +102,13 @@ class ProductsController extends Controller
     public function edit($id)
     {
         //
-        abort_if(Gate::denies('subscription_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('product_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $subscription = Subscription::where('id', $id)->first();
+        $product = Product::where('id', $id)->first();
+        $data['title'] = 'Edit Product';
+        $data['product'] = $product;
 
-        return view('admin.subscription.create', compact('subscription'));
+        return view('admin.products.create', $data);
     }
 
     /**
@@ -125,7 +132,7 @@ class ProductsController extends Controller
     public function destroy(Subscription $subscription)
     {
         //
-        abort_if(Gate::denies('subscription_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
+        abort_if(Gate::denies('product_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $subscription->delete();
 

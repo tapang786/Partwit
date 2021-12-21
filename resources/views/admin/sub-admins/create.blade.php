@@ -4,16 +4,15 @@
 <div class="card">
     <div class="card-header card-header-primary">
         <h4 class="card-title">
-            {{ trans('global.edit') }} {{ trans('cruds.driver.title_singular') }}
+            {{$title}}
         </h4>
     </div>
 
     <div class="card-body">
-        <form action="{{ route("admin.drivers.update", [$user->id]) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route("admin.sub-admins.store") }}" method="POST" enctype="multipart/form-data">
             @csrf
-            @method('PUT')
             <div class="form-group {{ $errors->has('name') ? 'has-error' : '' }}">
-                <label for="name">{{ trans('cruds.driver.fields.name') }}*</label>
+                <label for="name">{{ trans('cruds.user.fields.name') }}*</label>
                 <input type="text" id="name" name="name" class="form-control" value="{{ old('name', isset($user) ? $user->name : '') }}" required>
                 @if($errors->has('name'))
                     <p class="help-block">
@@ -21,11 +20,11 @@
                     </p>
                 @endif
                 <p class="helper-block">
-                    {{ trans('cruds.driver.fields.name_helper') }}
+                    {{ trans('cruds.user.fields.name_helper') }}
                 </p>
             </div>
             <div class="form-group {{ $errors->has('email') ? 'has-error' : '' }}">
-                <label for="email">{{ trans('cruds.driver.fields.email') }}*</label>
+                <label for="email">{{ trans('cruds.user.fields.email') }}*</label>
                 <input type="email" id="email" name="email" class="form-control" value="{{ old('email', isset($user) ? $user->email : '') }}" required>
                 @if($errors->has('email'))
                     <p class="help-block">
@@ -33,46 +32,43 @@
                     </p>
                 @endif
                 <p class="helper-block">
-                    {{ trans('cruds.driver.fields.email_helper') }}
+                    {{ trans('cruds.user.fields.email_helper') }}
                 </p>
             </div>
             <div class="form-group {{ $errors->has('password') ? 'has-error' : '' }}">
-                <label for="password">{{ trans('cruds.driver.fields.password') }}</label>
-                <input type="password" id="password" name="password" class="form-control">
+                <label for="password">{{ trans('cruds.user.fields.password') }}</label>
+                <input type="password" id="password" name="password" class="form-control" required>
                 @if($errors->has('password'))
                     <p class="help-block">
                         {{ $errors->first('password') }}
                     </p>
                 @endif
                 <p class="helper-block">
-                    {{ trans('cruds.driver.fields.password_helper') }}
+                    {{ trans('cruds.user.fields.password_helper') }}
                 </p>
             </div>
-            <!-- <div class="form-group {{ $errors->has('roles') ? 'has-error' : '' }}">
-                <label for="roles">{{ trans('cruds.driver.fields.roles') }}*
-                    <span class="btn btn-info btn-xs select-all">{{ trans('global.select_all') }}</span>
-                    <span class="btn btn-info btn-xs deselect-all">{{ trans('global.deselect_all') }}</span></label>
-                <select name="roles[]" id="roles" class="form-control select2" multiple="multiple" required>
-                    @foreach($roles as $id => $roles)
-                        <option value="{{ $id }}" {{ (in_array($id, old('roles', [])) || isset($user) && $user->roles->contains($id)) ? 'selected' : '' }}>{{ $roles }}</option>
-                    @endforeach
-                </select>
-                @if($errors->has('roles'))
+            <input type="hidden" name="roles[]" value="3">
+            
+            <div class="{{ $errors->has('profile_pic') ? 'has-error' : '' }}">
+                <label for="profile_pic">Profile Photo*</label>
+                <input type="file" id="profile_pic" name="profile_pic" class="form-control" value="" {{ isset($profile->profile_pic) ? '' : 'required' }}>
+                @if($errors->has('profile_pic'))
                     <p class="help-block">
-                        {{ $errors->first('roles') }}
+                        {{ $errors->first('profile_pic') }}
                     </p>
                 @endif
                 <p class="helper-block">
-                    {{ trans('cruds.driver.fields.roles_helper') }}
+                    {{ trans('cruds.advertisement.fields.title_helper') }}
                 </p>
-            </div> -->
+                @if(isset($profile->profile_pic)) 
+                    <img src="{{ url('images/banners/'.$profile->profile_pic)}}" width="220">
+                @endif
+                <input type="hidden" name="profile_pic_old" value="{{ isset($profile->profile_pic) ? $profile->profile_pic : '' }}">
+            </div>
             <div>
-                <input type="hidden" name="roles[]" value="3">
                 <input class="btn btn-danger" type="submit" value="{{ trans('global.save') }}">
             </div>
         </form>
-
-
     </div>
 </div>
 @endsection

@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 @section('content')
 
+@can('page_create')
 <div style="margin-bottom: 10px;" class="row">
     <div class="col-lg-12">
         <a class="btn btn-success" href="{{ route("admin.pages.create") }}">
@@ -8,6 +9,7 @@
         </a>
     </div>
 </div>
+@endcan
 
 <div class="card">
     <div class="card-header card-header-primary">
@@ -65,19 +67,22 @@
                                 {{ \Carbon\Carbon::parse($page->created_at)->format('d/m/Y')}}
                             </td>
                             <td>
-
+                                @can('page_edit')
                                 <a class="btn btn-xs btn-info" href="{{ route('admin.pages.edit', $page->id) }}">
                                     {{ trans('global.edit') }}
                                 </a>
-                                @if($page->id > 2)
-                                
-                                <form action="{{ route('admin.pages.destroy', $page->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
-                                    <input type="hidden" name="_method" value="DELETE">
-                                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                    <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
-                                </form>
-                                
-                                @endif
+                                @endcan
+
+                                @can('page_delete')
+                                    @if($page->id > 3)
+                                    
+                                    <form action="{{ route('admin.pages.destroy', $page->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                                        <input type="hidden" name="_method" value="DELETE">
+                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                        <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">
+                                    </form>
+                                    @endif
+                                @endcan
                             </td>
 
                         </tr>

@@ -52,7 +52,7 @@ class AuthController extends Controller
         $role = isset($role) ? $role : 2; 
         $user->roles()->attach($role); // Simple user role
 
-        $otp = rand(100000, 999999);
+        $otp = rand(1000, 9999);
 
         $otp_token = UserVerificationToken::firstOrNew([
             'user_id' => $user->id,
@@ -74,8 +74,8 @@ class AuthController extends Controller
         //     'message'=>$message,
         // ];
 
-        $config = ['fromemail' => 'tapan786@gmail.com',
-            "reply_email" => 'tapan786@gmail.com',
+        $config = ['fromemail' => env("ADMIN_EMAIL", "admin@admin.com"),
+            "reply_email" => env("ADMIN_EMAIL", "admin@admin.com"),
             'otp' => $otp,
             'subject' => 'Verification mail', 
             'name' => 'Test',
@@ -174,7 +174,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'status' => true, 
-                'message' => 'Login success!',
+                'message' => 'Login successful!',
                 'token' => $token->accessToken, 
                 'remember_device' => $remember_device,
                 'role' => $role,
@@ -206,80 +206,82 @@ class AuthController extends Controller
 
         }
 
+        $parameters = $request->all();
+        extract($parameters);
+
         $social_account = SocialAccount::where('social_id', '=', $request->social_id)
                         ->where('social_type', '=', $request->social_type)
                         ->first();
 
-        
-
-        if(empty($social_account)){
+        if(empty($social_account)) {
             // 
+            $getold = User::where('email', '=', $request->email)->orWhere('phone', '=', $request->phone)->first();
 
-            $getuser = User::where('email', '=', $request->email)->orWhere('phone', '=', $request->phone)->first();
+            $getuser = User::firstOrCreate(
+                ['email' =>  isset($request->email)?$request->email:null],
+                ['phone' =>  isset($request->mobile)?$request->mobile:null]
+            );
 
-            return response()->json([
-                'status' => false,
-                'message' => 'User not exist please signup first',
-                'data' => []
-            ]);
+            if(empty($getold)) {
+                $role = isset($role) ? $role : 2; 
+                $getuser->roles()->attach($role);
+            }
+
+            $user_id = $getuser->id;
+            $social_account = SocialAccount::firstOrNew(['user_id' => $user_id, 'social_id' => $request->social_id, 'social_type' => $request->social_type]);
+            $social_account->save();
             
         } else {
             // 
-            if(empty($social_account)) {
-                // 
-                $user_id = $getuser->id;
-                $social_account = SocialAccount::firstOrNew(['user_id' => $user_id, 'social_id' => $request->social_id, 'social_type' => $request->social_type]);
-                $social_account->save();
-                
-            } else {
-                // 
-                $user_id = $social_account['user_id'];
-            }
-            Auth::loginUsingId($user_id);
-            $user = Auth::user(); 
+            $user_id = $social_account['user_id'];
+        }
 
-            if (!$user) {
-                return response()->json([
-                    'status' => false, 
-                    'message' => 'Failed to login',
-                    'data'=>[]
-                ]);
-            }
+        Auth::loginUsingId($user_id);
+        $user = Auth::user(); 
 
-            $user_id = $user->id;
+        if (!$user) {
+            return response()->json([
+                'status' => false, 
+                'message' => 'Failed to login',
+                'data'=>[]
+            ]);
+        }
+
+        if(isset($device_id)) {
             $user = User::updateOrCreate([
                 'id' => $user_id,
             ], [
                 'device_id' => $request->device_id, 
             ]);
-
-            $token = $user->createToken($user->email . '-' . now());
-
-            $userdata = User::where('id', '=', $user_id)->first();
-
-
-            $userdata->load('roles');
-            // $user = Helper::singleUserInfoDataChange($user->id, $user);
-            $role = $userdata->roles[0]->id;
-            unset($userdata['roles']);
-
-            if($userdata->name == "" && $userdata->name == null){
-                $userdata['isRegistrationComplete'] = false;
-            }
-            else{
-                $userdata['isRegistrationComplete'] = true;
-            }
-            
-            return response()->json([
-                'status' => true, 
-                'message' => 'Logout successfully!',
-                'isUserFound'=>true,
-                'token' => $token->accessToken, 
-                'remember_device' => true,
-                'role' => $role,
-                'user_info' => $userdata,
-            ]); 
         }
+        
+        $token = $user->createToken($user->email . '-' . now());
+
+        $user->load('roles');
+        if(isset($user->roles)) {
+            $role = 2;
+        } else {
+            $role = $user->roles[0]->id;
+        }
+        
+        unset($user['roles']);
+
+        if($user->name == "" && $user->name == null){
+            $user['isRegistrationComplete'] = false;
+        }
+        else{
+            $user['isRegistrationComplete'] = true;
+        }
+        
+        return response()->json([
+            'status' => true, 
+            'message' => 'Login successfully!',
+            'isUserFound'=>true,
+            'token' => $token->accessToken, 
+            'remember_device' => true,
+            'role' => $role,
+            'user_info' => $user,
+        ]);
     }
 
     public function forgotPassword(Request $request)
@@ -302,7 +304,7 @@ class AuthController extends Controller
             return response()->json(['status'=> false, 'message' => 'Email id not found!']);
         }
 
-        $otp = rand(100000, 999999);
+        $otp = rand(1000, 9999);
         
         $response = [];
 
@@ -317,8 +319,8 @@ class AuthController extends Controller
                 foreach($basicinfo as $key=> $info){
                     $msg=str_replace($key,$info,"Forgot password OTP: $otp");
                 }
-                $config = ['fromemail' => 'tapan786@gmail.com',
-                    "reply_email" => 'tapan786@gmail.com',
+                $config = ['fromemail' => env("ADMIN_EMAIL", "admin@admin.com"),
+                    "reply_email" => env("ADMIN_EMAIL", "admin@admin.com"),
                     'otp' => $otp,
                     'subject' => 'Forgot password mail', 
                     'name' => 'Test',

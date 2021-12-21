@@ -63,6 +63,16 @@
             </li>
             @endcan
             
+            @can('reports_access')
+            <li class="nav-item {{ request()->is('dashboard/reports') || request()->is('dashboard/reports/*') ? 'active' : '' }}">
+                <a href="{{ route("admin.reports.index") }}" class="nav-link" class="nav-link" >
+                    <p>
+                        <i class="far fa-flag"></i>
+                        <span>Reports</span>
+                    </p>
+                </a>
+            </li>
+            @endcan
 
             @can('page_access')
             <li class="nav-item {{ request()->is('dashboard/pages') || request()->is('dashboard/pages/*') ? 'active' : '' }}">
@@ -75,7 +85,7 @@
             </li>
             @endcan
 
-            @can('user_management_access')
+            @can('subscription_access')
             <li class="nav-item {{ request()->is('dashboard/subscription') || request()->is('dashboard/subscription/*') ? 'active' : '' }}">
                 <a href="{{ route("admin.subscription.index") }}" class="nav-link" class="nav-link" >
                     <p>
@@ -95,7 +105,7 @@
                             <b class="caret"></b>
                         </p>
                     </a>
-                    <div class="collapse {{ request()->is('dashboard/sellers') || request()->is('dashboard/sellers/*') || request()->is('dashboard/users') || request()->is('dashboard/users/*') || request()->is('dashboard/roles') || request()->is('dashboard/roles/*') || request()->is('dashboard/permissions') || request()->is('dashboard/permissions/*') ? 'show' : '' }}" id="user_management">
+                    <div class="collapse {{ request()->is('dashboard/sub-admins') || request()->is('dashboard/sub-admins/*') || request()->is('dashboard/users') || request()->is('dashboard/users/*') || request()->is('dashboard/roles') || request()->is('dashboard/roles/*') || request()->is('dashboard/permissions') || request()->is('dashboard/permissions/*') ? 'show' : '' }}" id="user_management">
                         <ul class="nav">
                             
                             @can('user_access')
@@ -107,14 +117,14 @@
                                 </li>
                             @endcan
 
-                            {{-- @can('seller_access')
-                                <li class="nav-item {{ request()->is('dashboard/sellers') || request()->is('dashboard/sellers/*') ? 'active' : '' }}">
-                                    <a href="{{ route("admin.sellers.index") }}" class="nav-link">
-                                        <i class="fas fa-store-alt"></i>
-                                        <span>Sellers</span>
+                            @can('sub_admin_access')
+                                <li class="nav-item {{ request()->is('dashboard/sub-admins') || request()->is('dashboard/sub-admins/*') ? 'active' : '' }}">
+                                    <a href="{{ route("admin.sub-admins.index") }}" class="nav-link">
+                                        <i class="fa-fw fas fa-user"></i>
+                                        <span>Sub Admins</span>
                                     </a>
                                 </li>
-                            @endcan --}}
+                            @endcan
                             
                             @can('permission_access')
                                 <li class="nav-item {{ request()->is('dashboard/permissions') || request()->is('dashboard/permissions/*') ? 'active' : '' }}">

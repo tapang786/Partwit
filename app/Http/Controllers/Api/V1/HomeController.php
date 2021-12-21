@@ -26,12 +26,16 @@ use App\Mail\UserOtpVerificationMail;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use App\Subscription;
+use App\Reason;
 use App\DriverRoutes;
 use App\DriverAssignRoutes;
 use App\Posts;
 use App\Notifications;
 use App\UserCard;
 use App\Payments;
+use App\Categories;
+use App\Product;
+use App\Reviews;
 
 class HomeController extends Controller
 {
@@ -127,20 +131,31 @@ class HomeController extends Controller
             //
             if($key == 'profile_pic') {
                     //
-                if(!empty($value)) { 
-                    $profile_image_url = Helper::createImage($value, $user_id);
+                // if(!empty($value)) { 
+                //     // $profile_image_url = Helper::createImage2($value, $user_id);
+                // }
+                // if(!empty($profile_image_url)) {
+                //     // 
+                //     // $status = Helper::update_user_meta($user_id, $key, $profile_image_url);
+                //     $request_data[$key] = $profile_image_url;
+                // }
+
+                if($request->hasfile('profile_pic'))
+                {
+                    $file =$request->file('profile_pic'); 
+
+                    $folderPath = "images/";
+                    $name = uniqid()."_".$user_id. '_userprofile.'.$file->extension(); //time().'.'.$file->extension();
+                    $file->move('images/', $name);  
+
+                    $request_data[$key] = 'images/'.$name;
                 }
-                if(!empty($profile_image_url)) {
-                    // 
-                    $status = Helper::update_user_meta($user_id, $key, $profile_image_url);
-                }
+
+
             } else if($key != 'key_value'){
                 $request_data[$key] = $value;
             }
-            // if($key == 'city') {
-            //     $status = Helper::update_user_meta($user_id, $key, $value);
-            //     // $request_data['city'] = $value;
-            // }
+            
         }
 
         if(isset($request->key_value)) {
@@ -154,7 +169,28 @@ class HomeController extends Controller
         $user_info = User::updateOrCreate(['id' => $user_id], $request_data);
 
         $user_info = Helper::singleUserInfoDataChange($user_info->id, $user_info);
-        return response()->json(['status' => true, 'message' => 'Update successfully!', 'user_info' => $user_info]);
+        $user->load('roles');
+        $role = $user->roles[0]->id;
+
+        $token = $user->createToken($user->id . '-' . now());
+
+        if($user->name == "" && $user->name == null){
+            $isRegistrationComplete = false;
+        }
+        else{
+            $isRegistrationComplete = true;
+        }
+
+
+        $response['status'] = true;
+        $response['message'] = 'Update successfully!';
+        $response['token'] = $token->accessToken;
+        $response['remember_device'] = false;
+        $response['role'] = $role;
+        $response['isRegistrationComplete'] = $isRegistrationComplete;
+        $response['user_info'] = $user_info;
+
+        return response()->json($response);
     }
 
     
@@ -346,7 +382,7 @@ class HomeController extends Controller
             return response()->json(['status'=> false, 'message' => 'Email id not found!']);
         }
 
-        $otp = rand(100000, 999999);
+        $otp = rand(1000, 9999);
         try {
             $otp_token = UserVerificationToken::firstOrNew([
                 'user_id' => $user->id, 
@@ -382,7 +418,7 @@ class HomeController extends Controller
                 Mail::to($email)->send(new UserMail($config));
 
                 $response['status'] = true;
-                $response['message'] = 'OTP is send!';
+                $response['message'] = 'Verification mail sent successfully!';
 
             } catch(Exception $e) {
                 return response()->json(['status'=>false, 'message' => 'Error to send OTP!']);
@@ -580,25 +616,29 @@ class HomeController extends Controller
         if($user_email == "") {
             return response()->json(['status' => false, 'message' => 'Email id not found!']);
         }
-
+        
         $user = User::where('email', $email)->first();
-        $otp = rand(100000, 999999);
+        $otp = rand(1000, 9999);
+        
         $otp_token = UserVerificationToken::firstOrNew([
             'user_id' => $user->id,
             'type' => $type
         ]);
+
         $otp_token->otp = $otp;
         $otp_token->expire = Carbon::now()->addMinute(15);
         $otp_token->save();
 
         // $token = $user->createToken($user->email . '-' . now());
-        $mail_data = MailTemplate::where('mail_type', 'verification_mail')->first();
+        $mail_data = MailTemplate::where('mail_type', $type)->first();
         $basicinfo = [
             '{otp}'=>$otp,
         ];
+
         foreach($basicinfo as $key=> $info){
             $msg=str_replace($key,$info,$mail_data->message);
         }
+
         $config = ['fromemail' => $mail_data->mail_from,
             "reply_email" => $mail_data->reply_email,
             'otp' => $otp,
@@ -607,6 +647,7 @@ class HomeController extends Controller
             'message' => $msg,
             'otp_expire' => '15 mins'
         ];
+
         $response = [];
 
         try {
@@ -910,13 +951,11 @@ class HomeController extends Controller
         // code...
         try {
 
-            $page = Posts::where('slug', 'privacy-policy')->first();
+            $page = Posts::where('slug', 'privacy-policy')->where('status', 'publish')->first();
 
-            $subscriptions = Subscription::all();
-            $response['status'] = "success";
+            $response['status'] = true;
             $response['message'] = "Privacy Policy";
             $response['data'] = $page;
-            
             
             return response()->json($response);
 
@@ -932,13 +971,30 @@ class HomeController extends Controller
         // code...
         try {
 
-            $page = Posts::where('slug', 'terms-conditions')->first();
+            $page = Posts::where('slug', 'terms-conditions')->where('status', 'publish')->first();
 
-            $subscriptions = Subscription::all();
-            $response['status'] = "success";
+            $response['status'] = true;
             $response['message'] = "Terms & Conditions";
             $response['data'] = $page;
             
+            return response()->json($response);
+
+        } catch(Exception $e) {
+            $response['status'] = "fail";
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+    public function AboutPartwit()
+    {
+        // code...
+        try {
+
+            $page = Posts::where('slug', 'about-partwit')->where('status', 'publish')->first();
+            $response['status'] = true;
+            $response['message'] = "About Partwit";
+            $response['data'] = $page;
             
             return response()->json($response);
 
@@ -1268,10 +1324,267 @@ class HomeController extends Controller
             } else {
                 return response()->json(['status' => 'fail', 'message' => "Failed to delete card!", 'response' => $sts], 200);
             }
+
         } catch (Exception $e){
             return response()->json(['status' => 'fail', 'message' => "Error: ".$e, 'response' => $e], 200);
         }
           
+    }
+
+    public function reportReasons()
+    {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+            $reasons = Reason::all();
+            return response()->json([
+                'status' => true, 
+                'message' => 'Report Reasons!',
+                'data' => $reasons, 
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+        
+    }
+
+    public function HomePage()
+    {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $categories = Categories::all();
+
+            foreach ($categories as $ck => $cv) {
+                // code...
+                $products = Product::where('category_id', $cv->id)->take(10)->get();
+                $product_lists = [];
+
+                if(count($products) > 0) {
+                    // 
+                    foreach ($products as $pk => $pv) {
+                        // code...
+                        $product_lists[] = array(
+                            'id' => $pv->id, 
+                            'name' => $pv->name, 
+                            'price' => $pv->price, 
+                            'featured_image' => ($pv->featured_image != null) ? url($pv->featured_image) : url('images/product/no-image.jpeg'), 
+                            'date' => Carbon::parse($pv->listed_on)->format('m/d/Y')
+                        );
+                    }
+                }
+
+                $data[] = array('cat_id' => $cv->id, 'title' => $cv->title, 'products' => $product_lists);    
+            }
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Home Page!',
+                'data' => $data, 
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+
+    public function SellerReviews(Request $request)
+    {
+        // code...
+
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $validator = \Validator::make($request->all() , [
+                'seller_id' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            // if($seller_id == $user->id) {
+            //     return response()->json(['status' => false, 'message' => 'You can\'t give a review to your account']);
+            // }
+
+            $reviews = Reviews::where('seller_id', $seller_id)->get();
+            return response()->json([
+                'status' => true, 
+                'message' => 'Seller Reviews!',
+                'data' => (count($reviews) > 0)?$reviews:[],
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+    
+    public function AddSellerReviews(Request $request)
+    {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $validator = \Validator::make($request->all() , [
+                'seller_id' => 'required',
+                'stars' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            if($seller_id == $user->id) {
+                return response()->json(['status' => false, 'message' => 'You can\'t give a review to your self account!']);
+            }
+            $rev = Reviews::where('seller_id', $seller_id)->where('user_id', $user->id)->get();
+
+            if(count($rev) > 0) {
+                return response()->json([
+                    'status' => false, 
+                    'message' => 'You can\'t give a review again to the same seller!'
+                ]);
+            }
+
+            $seller = User::where('id', $seller_id)->first();
+
+            $review = Reviews::create([
+                'seller_id' => $seller_id,
+                'user_id' => $user->id,
+                'stars' => $stars,
+                'description' => isset($description)?$description:'',
+                'extra_data' => json_encode([
+                    'seller_name' => $seller->name,
+                    'seller_id' => $seller->id,
+                    'user_name' => $user->name,
+                    'user_profile_pic' => ($user->profile_pic!=null)?url($user->profile_pic):'',
+                    'user_id' => $user->id,
+                ]),
+            ]);
+
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Review Submited Successfully!!',
+                // 'data' => $review,
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+
+    public function SearchProduct(Request $request)
+    {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $validator = \Validator::make($request->all() , [
+                'search' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $products = Product::where('name', 'like', '%' .$search. '%')
+            ->orWhere('short_desc', 'like', '%' .$search. '%')
+            ->orWhere('short_desc', 'like', '%' .$search. '%')
+            ->get();
+
+            // $products = Product::where('category_id', $cv->id)->take(10)->get();
+            $search_data = [];
+            $product_lists = [];
+
+            if(count($products) > 0) {
+                // 
+                foreach ($products as $pk => $pv) {
+                    // code...
+                    $product_lists[] = array(
+                        'id' => $pv->id, 
+                        'name' => $pv->name, 
+                        'price' => $pv->price, 
+                        'featured_image' => ($pv->featured_image != null) ? url($pv->featured_image) : url('images/product/no-image.jpeg'), 
+                        'date' => Carbon::parse($pv->listed_on)->format('m/d/Y')
+                    );
+                }
+            }
+
+            $search_data['search'] = $search;
+            $search_data['products'] = $product_lists;
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Search Products!',
+                'data' => $search_data,
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
     }
 
 }
