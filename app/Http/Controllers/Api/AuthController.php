@@ -188,7 +188,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'status' => true, 
-                'message' => 'Login successful!',
+                'message' => 'Login successfully!',
                 'token' => $token->accessToken, 
                 'remember_device' => $remember_device,
                 'role' => $role,
@@ -345,10 +345,10 @@ class AuthController extends Controller
                 Mail::to($email)->send(new UserMail($config));
 
                 $response['status'] = true;
-                $response['message'] = 'Forgot password OTP is send!';
+                $response['message'] = 'Forgot password OTP is sent!';
 
             } catch(Exception $e) {
-                return response()->json(['status'=>false, 'message' => 'Error to send OTP!']);
+                return response()->json(['status'=>false, 'message' => 'Error to sent OTP!']);
             }
         } else {
             $response['status'] = false;

@@ -431,7 +431,7 @@ class HomeController extends Controller
                 $response['message'] = 'Verification mail sent successfully!';
 
             } catch(Exception $e) {
-                return response()->json(['status'=>false, 'message' => 'Error to send OTP!']);
+                return response()->json(['status'=>false, 'message' => 'Error to sent OTP!']);
             }
         } else {
             $response['status'] = false;
@@ -663,7 +663,7 @@ class HomeController extends Controller
         try {
             Mail::to($user_email)->send(new UserOtpVerificationMail($config));
             $response['status'] = true;
-            $response['message'] = "Verification mail send successfully!";
+            $response['message'] = "Verification mail sent successfully!";
         } catch(Exception $e) {
             $response['status'] = false;
             $response['message'] = "Error: ".$e;
@@ -1653,7 +1653,7 @@ class HomeController extends Controller
         try {
             Mail::to($email)->send(new UserOtpVerificationMail($config));
             $response['status'] = true;
-            $response['message'] = "Verification mail send successfully!";
+            $response['message'] = "Verification mail sent successfully!";
         } catch(Exception $e) {
             $response['status'] = false;
             $response['message'] = "Error: ".$e;
