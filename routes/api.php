@@ -15,7 +15,8 @@ Route::post('logout', 'Api\\AuthController@logoutApi');
 // Forgot Pass
 Route::post('forgot-password', 'Api\\AuthController@forgotPassword');
 
-
+// Send Verification OTP
+Route::post('send-verification-otp', [HomeController::class, 'SendVerificationOTP']);
 
 // Verify OTP
 Route::post('verify-otp', [HomeController::class, 'verifyOTP']);
@@ -43,6 +44,9 @@ Route::get('terms-conditions', [HomeController::class, 'termsConditions']);
 // About PartWit
 Route::get('about-partwit', [HomeController::class, 'AboutPartwit']);
 
+// Verify User Email Opt
+Route::post('verify-user-email-otp', [HomeController::class, 'verifyUserOtpVerificationMail']);
+
 Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', 'middleware' => ['auth:api']], function () {
     // Permissions
     Route::apiResource('permissions', 'PermissionsApiController');
@@ -52,9 +56,6 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
 
     // Users
     Route::apiResource('users', 'UsersApiController');
-
-    // Verify User Email Opt
-    Route::post('verify-user-email-otp', [HomeController::class, 'verifyUserOtpVerificationMail']);
 
     // Change User Password
     Route::post('change-password', [HomeController::class, 'changeUserPassword']);

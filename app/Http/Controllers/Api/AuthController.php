@@ -27,9 +27,10 @@ class AuthController extends Controller
     {
 
         $validator = \Validator::make($request->all() , [
-            // 'name' => 'required',
             'email' => 'required|email|unique:users,email', 
-            'password' => 'required|confirmed|string|min:6'
+            'name' => 'required|regex:/^[\pL\s]+$/u', 
+            'password' => 'required|confirmed|string|min:6',
+            'password_confirmation' => 'required|same:password',
         ]);
 
         if ($validator->fails()) {
@@ -47,63 +48,76 @@ class AuthController extends Controller
             'email' => $email, 
             'name' => isset($name) ? $name : '',
             'username' => $username, 
-            'password' => bcrypt($password)
+            'password' => bcrypt($password),
         ]);
         $role = isset($role) ? $role : 2; 
         $user->roles()->attach($role); // Simple user role
 
-        $otp = rand(1000, 9999);
+        // $otp = rand(1000, 9999);
 
-        $otp_token = UserVerificationToken::firstOrNew([
-            'user_id' => $user->id,
-            'type' => 'registration_otp'
-        ]);
-        $otp_token->otp = $otp;
-        $otp_token->expire = Carbon::now()->addMinute(15);
-        $otp_token->save();
+        // $otp_token = UserVerificationToken::firstOrNew([
+        //     'user_id' => $user->id,
+        //     'type' => 'registration_otp'
+        // ]);
+        // $otp_token->otp = $otp;
+        // $otp_token->expire = Carbon::now()->addMinute(15);
+        // $otp_token->save();
 
         $token = $user->createToken($user->id . '-' . now());
-        // $mail_data = MailTemplate::where('mail_type', 'register')->first();
-        $message = str_replace('{otp}',$otp, "OTP: $otp");
-        // $config = ['fromemail' => $mail_data->mail_from,
-        //     "reply_email" => $mail_data->reply_email,
+        // // $mail_data = MailTemplate::where('mail_type', 'register')->first();
+        // $message = str_replace('{otp}',$otp, "OTP: $otp");
+        // // $config = ['fromemail' => $mail_data->mail_from,
+        // //     "reply_email" => $mail_data->reply_email,
+        // //     'otp' => $otp,
+        // //     'subject' => $mail_data->subject, 
+        // //     'name' => $mail_data->name,
+        // //     'otp_expire' => '15 mins',
+        // //     'message'=>$message,
+        // // ];
+
+        // $config = ['fromemail' => env("ADMIN_EMAIL", "admin@admin.com"),
+        //     "reply_email" => env("ADMIN_EMAIL", "admin@admin.com"),
         //     'otp' => $otp,
-        //     'subject' => $mail_data->subject, 
-        //     'name' => $mail_data->name,
+        //     'subject' => 'Verification mail', 
+        //     'name' => 'Test',
         //     'otp_expire' => '15 mins',
         //     'message'=>$message,
         // ];
 
-        $config = ['fromemail' => env("ADMIN_EMAIL", "admin@admin.com"),
-            "reply_email" => env("ADMIN_EMAIL", "admin@admin.com"),
-            'otp' => $otp,
-            'subject' => 'Verification mail', 
-            'name' => 'Test',
-            'otp_expire' => '15 mins',
-            'message'=>$message,
-        ];
+        // Mail::to($user->email)->send(new UserOtpVerificationMail($config));
+        // // $user = Helper::singleUserInfoDataChange($user->id, $user);
 
-        Mail::to($user->email)->send(new UserOtpVerificationMail($config));
-        // $user = Helper::singleUserInfoDataChange($user->id, $user);
+        // $user = User::where('id','=',$user->id)->first();
+        $profile_pic = '';
 
-        $user = User::where('id','=',$user->id)->first();
-        if($user->name == "" && $user->name == null){
-            $user['isRegistrationComplete'] = false;
+        if($request->hasfile('profile_pic'))
+        {
+            $file =$request->file('profile_pic'); 
+
+            $folderPath = "images/";
+            $name = uniqid()."_".$user->id. '_userprofile.'.$file->extension(); //time().'.'.$file->extension();
+            $file->move('images/', $name);  
+
+            $profile_pic = url('images/'.$name);
         }
-        else{
-            $user['isRegistrationComplete'] = true;
-        }
-        $user->load('roles');
-        $role = $user->roles[0]->id;
-        unset($user['roles']);
+
+        $user_info = User::updateOrCreate(['id' => $user->id], [
+            'isRegistrationComplete' => true, 
+            'profile_pic' => $profile_pic
+        ]);
+
+        $user_info->load('roles');
+        $role = $user_info->roles[0]->id;
+        unset($user_info['roles']);
+
         return response()->json([
             'status' => true, 
             'message' => 'Registeration successfully!',
-            'isRegistrationComplete' => $user->isRegistrationComplete,
+            'isRegistrationComplete' => $user_info->isRegistrationComplete,
             'remember_device' => false, 
             'token' => $token->accessToken,
             'role' => $role, 
-            'user_info' => $user,
+            'user_info' => $user_info,
         ]);
         
     }

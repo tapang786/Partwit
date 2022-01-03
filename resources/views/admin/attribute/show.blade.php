@@ -4,7 +4,7 @@
 <div class="card">
     <div class="card-header card-header-primary">
         <h4 class="card-title">
-            {{ trans('global.show') }} {{ trans('cruds.user.title') }}
+           
         </h4>
     </div>
 
@@ -14,46 +14,31 @@
                 <tbody>
                     <tr>
                         <th>
-                            {{ trans('cruds.user.fields.id') }}
+                            Attribute Title
                         </th>
                         <td>
-                            {{ $user->id }}
+                            {{ $attr->title }}
                         </td>
                     </tr>
                     <tr>
                         <th>
-                            {{ trans('cruds.user.fields.name') }}
+                            Attribute Value
                         </th>
                         <td>
-                            {{ $user->name }}
+                        @php $i = 1; @endphp 
+                        @foreach($attrval as $val)
+                            @php 
+                                if($i==1) {
+                                    echo trim($val->title);
+                                } else {
+                                    echo ', '.trim($val->title);
+                                }
+                                $i++;
+                            @endphp
+                        @endforeach
                         </td>
                     </tr>
-                    <tr>
-                        <th>
-                            {{ trans('cruds.user.fields.email') }}
-                        </th>
-                        <td>
-                            {{ $user->email }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            {{ trans('cruds.user.fields.email_verified_at') }}
-                        </th>
-                        <td>
-                            {{ $user->email_verified_at }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            Roles
-                        </th>
-                        <td>
-                            @foreach($user->roles as $id => $roles)
-                                <span class="label label-info label-many">{{ $roles->title }}</span>
-                            @endforeach
-                        </td>
-                    </tr>
+                   
                 </tbody>
             </table>
             <a style="margin-top:20px;" class="btn btn-default" href="{{ url()->previous() }}">

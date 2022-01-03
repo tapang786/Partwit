@@ -24,24 +24,12 @@
                         <th width="10">
 
                         </th>
-                        <th>
-                            id
-                        </th>
-                        <th>
-                        Category Name
-                        </th>
-                        {{-- <th>
-                        Parent Category
-                        </th> --}}
-                      
+                        <th> id </th>
+                        <th> Category Name </th>
                         @can('cat_add')
-                        <th>
-                          Attributes
-                        </th>
+                        <th> Attributes </th>
                         @endcan
-                        <th>
-                            Action
-                        </th>
+                        <th> Action </th>
                        
                         <th>
                             &nbsp;
@@ -60,19 +48,14 @@
                             <td>
                                 {{ $attr->title ?? '' }}
                             </td>
-                            {{-- <td>
-                            </td> --}}
-                           
-                           
+                            
                             @can('cat_add')
                             <td>
-                                    <a class="btn btn-xs btn-success" href="{{ route('admin.attributes.create') }}">
-                                       add attributes
-                                    </a>
+                                <a class="btn btn-xs btn-success" href="{{ route('admin.attributes.index', ['cat' => $attr->id]) }}">
+                                   View/Add
+                                </a>
                             </td>
                             @endcan
-                           
-                           
                             <td>
                                 @can('user_show')
                                     <a class="btn btn-xs btn-primary" href="">

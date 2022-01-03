@@ -17,7 +17,7 @@
                 <input type="text" id="name" name="title" class="form-control" value="{{isset($category) ? $category->title : ''}}" required>
                
             </div>
-            <div class="form-group {{ $errors->has('name') ? 'has-error' : '' }}">
+            {{-- <div class="form-group {{ $errors->has('name') ? 'has-error' : '' }}">
                 <label for="name">Parent Category*</label>
                <select class="form-control select2" name="parent">
                <option value="0">Select</option>
@@ -26,11 +26,10 @@
                    @endforeach
                </select>
                
-            </div>
+            </div> --}}
             <div class="form-group {{ $errors->has('email') ? 'has-error' : '' }}">
                 <label for="email">Description*</label>
                 <textarea class="form-control" name="description" value="" required>{{isset($category) ? $category->description : ''}}</textarea>
-               
             </div>
            
            

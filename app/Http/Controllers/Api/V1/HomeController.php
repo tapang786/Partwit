@@ -122,6 +122,17 @@ class HomeController extends Controller
             $user = Auth::guard('api')->user();
         } 
 
+        $validator = \Validator::make($request->all() , [
+            'name' => 'required|regex:/^[\pL\s]+$/u',
+        ]);
+
+        if ($validator->fails()) {
+            $response = $validator->errors();
+            return response()
+                ->json(['status' => false, 'message' => implode("", $validator->errors()
+                ->all()) ], 200);
+        }
+
         $user_id = $user->id;
 
         $request_values = $request->all();
@@ -153,7 +164,7 @@ class HomeController extends Controller
 
 
             } else if($key != 'key_value'){
-                $request_data[$key] = $value;
+                $request_data[$key] = trim($value);
             }
             
         }
@@ -284,12 +295,12 @@ class HomeController extends Controller
     public function verifyUserOtpVerificationMail(Request $request)
     {
         
-        if (Auth::guard('api')->check()) {
-            $user = Auth::guard('api')->user();
-        }
-        if(!$user) {
-            return response()->json(['status' => false, 'message' => 'login token error!']);
-        }
+        // if (Auth::guard('api')->check()) {
+        //     $user = Auth::guard('api')->user();
+        // }
+        // if(!$user) {
+        //     return response()->json(['status' => false, 'message' => 'login token error!']);
+        // }
 
         $validator = \Validator::make($request->all() , [
             'otp' => 'required',
@@ -307,7 +318,7 @@ class HomeController extends Controller
 
         $response = [];
         $token = UserVerificationToken::where('otp', '=', $otp)
-            ->where('user_id', '=', $user->id)
+            ->where('user_id', '=', $email)
             ->where('type', '=', 'registration_otp')
             ->first();
 
@@ -324,32 +335,31 @@ class HomeController extends Controller
             }
             else {
             // 
-                
-                
+
                 $response['status'] = true;
                 $response['message'] = 'email verfied successfully!';
 
-                // if($user->email == "") {
-                    $updateUser = User::find($user->id);
-                    // $updateUser->email = $email;
-                    $updateUser->isEmailVerified = 1;
-                    // $updateUser->email_verified_at = Carbon::now();
-                    // $updateUser->profile_status = ($user->profile_status > 1)? 2 : 1 ;
-                    $updateUser->device_id = isset($device_id) ? $device_id : (($user->devide_id) ? $user->devide_id : '' );
-                    $updateUser->save();
-                // }    
-                $remember_devices = [];
-                if(isset($remember_device) && $remember_device == 'true') {
+                // // if($user->email == "") {
+                //     $updateUser = User::find($user->id);
+                //     // $updateUser->email = $email;
+                //     $updateUser->isEmailVerified = 1;
+                //     // $updateUser->email_verified_at = Carbon::now();
+                //     // $updateUser->profile_status = ($user->profile_status > 1)? 2 : 1 ;
+                //     $updateUser->device_id = isset($device_id) ? $device_id : (($user->devide_id) ? $user->devide_id : '' );
+                //     $updateUser->save();
+                // // }    
+                // $remember_devices = [];
+                // if(isset($remember_device) && $remember_device == 'true') {
 
-                    $remember_devices = json_decode(Helper::getUserMeta($user->id, 'remember_devices', true));
-                    if(empty($remember_devices)) {
-                        $remember_devices[] = $device_id;
-                        Helper::update_user_meta($user->id, 'remember_devices', json_encode($remember_devices));
-                    } else if (!in_array($device_id, $remember_devices)) {
-                        $remember_devices[] .= $device_id;
-                        Helper::update_user_meta($user->id, 'remember_devices', json_encode($remember_devices));
-                    }
-                }
+                //     $remember_devices = json_decode(Helper::getUserMeta($user->id, 'remember_devices', true));
+                //     if(empty($remember_devices)) {
+                //         $remember_devices[] = $device_id;
+                //         Helper::update_user_meta($user->id, 'remember_devices', json_encode($remember_devices));
+                //     } else if (!in_array($device_id, $remember_devices)) {
+                //         $remember_devices[] .= $device_id;
+                //         Helper::update_user_meta($user->id, 'remember_devices', json_encode($remember_devices));
+                //     }
+                // }
                 
                 $token->delete();
             }
@@ -608,7 +618,7 @@ class HomeController extends Controller
 
     public function reSendEmailVerificationOTP(Request $request)
     {
-
+        // 
         $parameters = $request->all();
         extract($parameters);
 
@@ -691,6 +701,10 @@ class HomeController extends Controller
                 return response()
                     ->json(['status' => false, 'message' => implode("", $validator->errors()
                     ->all()) ], 200);
+            }
+
+            if($old_password == $password) {
+                return response()->json(['status' => false, 'message' => 'your current password cannot be same as previous password!']);
             }
 
             if (Hash::check($old_password, $user->password)) { 
@@ -1585,6 +1599,67 @@ class HomeController extends Controller
             $response['message'] = "Error: ".$e;
             return response()->json($response);
         }
+    }
+
+
+    public function SendVerificationOTP(Request $request)
+    {
+        // 
+        $parameters = $request->all();
+        extract($parameters);
+
+        if($email == "") {
+            return response()->json(['status' => false, 'message' => 'Email required!']);
+        }
+
+        $user = User::where('email', $email)->first();
+        if($user) {
+            return response()->json(['status' => false, 'message' => 'Email Already Registred!']);
+        }
+        
+        // $user = User::where('email', $email)->first();
+        $otp = rand(1000, 9999);
+        
+        $otp_token = UserVerificationToken::firstOrNew([
+            'user_id' => $email,
+            'type' => 'registration_otp'
+        ]);
+
+        $otp_token->otp = $otp;
+        $otp_token->expire = Carbon::now()->addMinute(15);
+        $otp_token->save();
+
+        // $token = $user->createToken($user->email . '-' . now());
+        $mail_data = MailTemplate::where('mail_type', 'registration_otp')->first();
+        $basicinfo = [
+            '{otp}'=>$otp,
+        ];
+
+        foreach($basicinfo as $key=> $info){
+            $msg=str_replace($key,$info,$mail_data->message);
+        }
+
+        $config = ['fromemail' => $mail_data->mail_from,
+            "reply_email" => $mail_data->reply_email,
+            'otp' => $otp,
+            'subject' => $mail_data->subject, 
+            'name' => $mail_data->name,
+            'message' => $msg,
+            'otp_expire' => '15 mins'
+        ];
+
+        $response = [];
+
+        try {
+            Mail::to($email)->send(new UserOtpVerificationMail($config));
+            $response['status'] = true;
+            $response['message'] = "Verification mail send successfully!";
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+        }
+        
+        return response()->json($response);
     }
 
 }

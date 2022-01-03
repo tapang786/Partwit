@@ -26,9 +26,9 @@
                         </th>
                         <th>id</th>
                         <th>Attribute Name</th>
-                        <th>Attribute Category</th>
+                        <th>Category</th>
                         <th>Values</th>
-                        <th>Add Values</th>
+                        {{-- <th>Add Values</th> --}}
                         <th>Action</th>
                         <th> </th>
                     </tr>
@@ -43,25 +43,29 @@
                                 {{ $attr->id ?? '' }}
                             </td>
                             <td>
-                                {{ $attr->title ?? '' }}
+                                {{ ucfirst($attr->title) ?? '' }}
                             </td>
                             <td>
-                            {{ $attr->name ?? '' }}
+                            {{ ucfirst($attr->name) ?? '' }}
                             </td>
                             <td>
-                                @foreach($attr->atrVal as $val)
-                                    <spna> {{ $val->title ?? '' }},</sapn>
-                                @endforeach
+                                <?php  $attrs =[]; ?>
+                                @if(count($attr->atrVal)>0)
+                                    @foreach($attr->atrVal as $val)
+                                        <?php $attrs[] = "<spna>".ucfirst($val->title)."</sapn>"; ?>
+                                    @endforeach
+
+                                    <?php echo implode(", ",$attrs); ?>
+
+                                @else
+                                    @can('cat_add')
+                                    <a class="btn btn-xs btn-success" href="{{ route('admin.attribute-value.create') }}">
+                                       add value
+                                    </a>
+                                    @endcan
+                                @endif
                             </td>
-                           
-                            @can('cat_add')
-                            <td>
-                                <a class="btn btn-xs btn-success" href="{{ route('admin.attribute-value.create') }}">
-                                   add value
-                                </a>
-                            </td>
-                            @endcan
-                            
+
                             <td>
                                 @can('user_show')
                                     <a class="btn btn-xs btn-primary" href="{{ route('admin.attributes.show',$attr->id) }}">

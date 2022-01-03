@@ -52,10 +52,6 @@ class ProductsController extends Controller
     {
         //
 
-        // $request->validate([
-        //     'file' => 'required|mimes:pdf,xlx,csv|max:2048',
-        // ]);
-
         if(isset($request->banner_image)) {
             $fileName = time().'_banner_'.$request->banner_image->getClientOriginalName();
             $request->banner_image->move(base_path('images/product'), $fileName);
