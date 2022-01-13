@@ -3,8 +3,8 @@
 @can('user_create')
     <div style="margin-bottom: 10px;" class="row">
         <div class="col-lg-12">
-            <a class="btn btn-success" href="{{ route("admin.category.create") }}">
-              Add Category
+            <a class="btn btn-success" href="{{ route("admin.attribute-value.create", ['attr' => $_GET['attr'], 'cat' => $_GET['cat']]) }}">
+              Add Attribut Values
             </a>
         </div>
     </div>
@@ -12,7 +12,7 @@
 <div class="card">
     <div class="card-header card-header-primary">
         <h4 class="card-title">
-        {{$title}}  
+        {{$title ?? ''}}
         </h4>
     </div>
 
@@ -21,71 +21,33 @@
             <table class=" table table-striped table-hover datatable datatable-User">
                 <thead>
                     <tr>
-                        <th width="10">
-
-                        </th>
-                        <th>
-                            id
-                        </th>
-                        <th>
-                            Title
-                        </th>
-                        <th>
-                            Description
-                        </th>
-                        <th>
-                            Parent Category
-                        </th>
-                        <th>
-                            Action
-                        </th>
-                       
-                        <th>
-                            &nbsp;
-                        </th>
+                        <th width="10"></th>
+                        <th>id</th>
+                        <th>Title</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($category as $key => $category)
-                        <tr data-entry-id="{{ $category->id }}">
+                    @foreach($attributes as $key => $attribute)
+                        <tr data-entry-id="{{ $attribute->id }}">
+                            <td></td>
+                            <td>{{ $attribute->id ?? '' }}</td>
+                            <td>{{ $attribute->title ?? '' }}</td>
                             <td>
-
-                            </td>
-                            <td>
-                                {{ $category->id ?? '' }}
-                            </td>
-                            <td>
-                                {{ $category->title ?? '' }}
-                            </td>
-                            <td>
-                                {{ $category->description ?? '' }}
-                            </td>
-                            <td>
-                                {{ $category->parent_name ?? 'No parent' }}
-                            </td>
-                           
-                           
-                            <td>
-                                @can('user_show')
+                                {{-- @can('user_show')
                                     <a class="btn btn-xs btn-primary" href="">
                                         {{ trans('global.view') }}
                                     </a>
-                                @endcan
+                                @endcan --}}
 
                                 @can('user_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.category.edit', $category->id) }}">
+                                    <a class="btn btn-xs btn-info" href="{{ route('admin.attribute-value.edit', [$attribute->id, 'attr' => $attribute->attr_id, 'cat' => isset($_GET['cat'])?$_GET['cat']:$attr->cat_id]) }}">
                                         {{ trans('global.edit') }}
                                     </a>
                                 @endcan
 
-                                @can('cat_add')
-                                    <a class="btn btn-xs btn-success" href="{{ route('admin.attributes.create') }}">
-                                       add attributes
-                                    </a>
-                                @endcan
-
                                 @can('user_delete')
-                                    <form action="{{ route('admin.category.destroy', $category->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                                    <form action="{{ route('admin.attribute-value.destroy', $attribute->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
                                         <input type="hidden" name="_method" value="DELETE">
                                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                         <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">

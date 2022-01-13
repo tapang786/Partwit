@@ -72,6 +72,9 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     // Home Page
     Route::get('home-page', [HomeController::class, 'HomePage']);
 
+    // Products by Category
+    Route::post('products-by-category', [HomeController::class, 'productsByCategory']);
+
     //Product Add / Edit
     Route::post('product-add', [ProductsController::class, 'create']); 
 

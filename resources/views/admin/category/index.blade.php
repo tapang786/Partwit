@@ -52,16 +52,16 @@
                             @can('cat_add')
                             <td>
                                 <a class="btn btn-xs btn-success" href="{{ route('admin.attributes.index', ['cat' => $attr->id]) }}">
-                                   View/Add
+                                   Attributes
                                 </a>
                             </td>
                             @endcan
                             <td>
-                                @can('user_show')
+                                {{-- @can('user_show')
                                     <a class="btn btn-xs btn-primary" href="">
                                         {{ trans('global.view') }}
                                     </a>
-                                @endcan
+                                @endcan --}}
 
                                 @can('user_edit')
                                     <a class="btn btn-xs btn-info" href="{{ route('admin.category.edit', $attr->id) }}">

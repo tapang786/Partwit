@@ -20,6 +20,11 @@ class AttributeController extends Controller
     {
         abort_if(Gate::denies('user_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        if(!isset($_GET['cat']) || $_GET['cat'] == "") {
+            // 
+            return redirect()->route('admin.category.index');
+        }
+
         $d['title'] = 'Attributes';
         
         if(isset($_REQUEST['cat'])) {
@@ -34,6 +39,7 @@ class AttributeController extends Controller
             $cat = Categories::where('id','=',$val->cat_id)->first();
             $atrVal = AttributeValue::where('attr_id','=',$val->id)->get();
             $Attributes[$key]['name'] = $cat->title;
+            $Attributes[$key]['cat_id'] = $cat->id;
             $Attributes[$key]['atrVal'] = $atrVal;
         }
 
@@ -58,7 +64,7 @@ class AttributeController extends Controller
             'cat_id'     => $request->category,
         ]);
 
-        return redirect()->route('admin.attributes.index');
+        return redirect()->route('admin.attributes.index', ['cat' => $request->category]);
 
     }
 
@@ -66,6 +72,10 @@ class AttributeController extends Controller
     {
         abort_if(Gate::denies('user_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
+        if(!isset($_GET['cat']) || $_GET['cat'] == "") {
+            // 
+            return redirect()->route('admin.category.index');
+        }
         $d['title'] = 'Attributes';
 
         $d['parent_cat'] = Categories::all();
@@ -105,7 +115,7 @@ class AttributeController extends Controller
 
         $attr->delete();
 
-        return redirect()->route('admin.attributes.index');
+        return redirect()->route('admin.attributes.index', ['cat' => $_GET['cat']]);
 
     }
 

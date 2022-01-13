@@ -140,6 +140,11 @@ class AuthController extends Controller
         $parameters = $request->all();
         extract($parameters);
 
+        $user = User::where('email', $email)->first();
+        if(!$user || empty($user)) {
+            return response()->json(['status'=> false, 'message' => 'Email id not Registered!']);
+        }
+
         if (!Auth::attempt(['email' => $email, 'password' => $password])) {
             //
             return response()->json([

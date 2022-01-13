@@ -27,6 +27,7 @@
                </select>
                
             </div> --}}
+            <input type="hidden" name="parent" value="0">
             <div class="form-group {{ $errors->has('email') ? 'has-error' : '' }}">
                 <label for="email">Description*</label>
                 <textarea class="form-control" name="description" value="" required>{{isset($category) ? $category->description : ''}}</textarea>

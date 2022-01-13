@@ -3,7 +3,7 @@
 @can('user_create')
     <div style="margin-bottom: 10px;" class="row">
         <div class="col-lg-12">
-            <a class="btn btn-success" href="{{ route("admin.attributes.create") }}">
+            <a class="btn btn-success" href="{{ route("admin.attributes.create", ['cat' => isset($_GET['cat'])?$_GET['cat']:$attr->cat_id]) }}">
               Add Attribute
             </a>
         </div>
@@ -11,9 +11,7 @@
 @endcan
 <div class="card">
     <div class="card-header card-header-primary">
-        <h4 class="card-title">
-        {{$title}}  
-        </h4>
+        <h4 class="card-title">{{$title ?? ''}}</h4>
     </div>
 
     <div class="card-body">
@@ -30,7 +28,7 @@
                         <th>Values</th>
                         {{-- <th>Add Values</th> --}}
                         <th>Action</th>
-                        <th> </th>
+                        
                     </tr>
                 </thead>
                 <tbody>
@@ -58,29 +56,31 @@
                                     <?php echo implode(", ",$attrs); ?>
 
                                 @else
-                                    @can('cat_add')
-                                    <a class="btn btn-xs btn-success" href="{{ route('admin.attribute-value.create') }}">
-                                       add value
-                                    </a>
-                                    @endcan
+                                    -
                                 @endif
                             </td>
 
                             <td>
-                                @can('user_show')
+                                @can('cat_add')
+
+                                    <a class="btn btn-xs btn-success" href="{{ route('admin.attribute-value.index', ['attr' => $attr->id, 'cat' => isset($_GET['cat'])?$_GET['cat']:$attr->cat_id]) }}">
+                                       Values
+                                    </a>
+                                @endcan
+                                {{-- @can('user_show')
                                     <a class="btn btn-xs btn-primary" href="{{ route('admin.attributes.show',$attr->id) }}">
                                         {{ trans('global.view') }}
                                     </a>
-                                @endcan
+                                @endcan --}}
 
                                 @can('user_edit')
-                                    <a class="btn btn-xs btn-info" href="{{ route('admin.attributes.edit', $attr->id) }}">
+                                    <a class="btn btn-xs btn-info" href="{{ route('admin.attributes.edit', [$attr->id, 'cat' => isset($_GET['cat'])?$_GET['cat']:$attr->cat_id]) }}">
                                         {{ trans('global.edit') }}
                                     </a>
                                 @endcan
 
                                 @can('user_delete')
-                                    <form action="{{ route('admin.attributes.destroy', $attr->id) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
+                                    <form action="{{ route('admin.attributes.destroy', [$attr->id, 'cat' => isset($_GET['cat'])?$_GET['cat']:$attr->cat_id]) }}" method="POST" onsubmit="return confirm('{{ trans('global.areYouSure') }}');" style="display: inline-block;">
                                         <input type="hidden" name="_method" value="DELETE">
                                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
                                         <input type="submit" class="btn btn-xs btn-danger" value="{{ trans('global.delete') }}">

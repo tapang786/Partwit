@@ -49,14 +49,14 @@
                         </li>
                         @endcan
 
-                        @can('category_management_access')
+                        {{-- @can('category_management_access')
                         <li class="nav-item {{ request()->is('dashboard/attributes') || request()->is('dashboard/attributes/*') ? 'active' : '' }}">
                             <a href="{{ route("admin.attributes.index") }}" class="nav-link " class="nav-link" >
                                 <i class="fas fa-list-alt"></i> 
                                 <span>Attributes</span>
                             </a>
                         </li>
-                        @endcan
+                        @endcan --}}
                         
                     </ul>
                 </div>

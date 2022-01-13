@@ -1387,7 +1387,9 @@ class HomeController extends Controller
 
             foreach ($categories as $ck => $cv) {
                 // code...
-                $products = Product::where('category_id', $cv->id)->take(10)->get();
+                $products = Product::where('category_id', $cv->id)
+                            // ->whereDate('expires_on', '>', Carbon::now())
+                            ->get();
                 $product_lists = [];
 
                 if(count($products) > 0) {
@@ -1420,6 +1422,71 @@ class HomeController extends Controller
         }
     }
 
+
+    public function productsByCategory(Request $request) {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $validator = \Validator::make($request->all() , [
+                'cat_id' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $products = Product::where('category_id', $cat_id)
+                        // ->whereDate('expires_on', '>', Carbon::now())
+                        ->get();
+            $product_lists = [];
+
+            if(count($products) > 0) {
+                // 
+                foreach ($products as $pk => $pv) {
+                    // code...
+                    $product_lists[] = array(
+                        'id' => $pv->id, 
+                        'name' => $pv->name, 
+                        'price' => $pv->price, 
+                        'featured_image' => ($pv->featured_image != null) ? url($pv->featured_image) : url('images/product/no-image.jpeg'), 
+                        'date' => Carbon::parse($pv->listed_on)->format('m/d/Y')
+                    );
+                }
+
+                return response()->json([
+                    'status' => true, 
+                    'message' => 'Products list.',
+                    'data' => $product_lists, 
+                ]);
+                // 
+            } else {
+                // 
+                return response()->json([
+                    'status' => false, 
+                    'message' => 'No Products found.',
+                    'data' => [], 
+                ]);
+            }
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
 
     public function SellerReviews(Request $request)
     {

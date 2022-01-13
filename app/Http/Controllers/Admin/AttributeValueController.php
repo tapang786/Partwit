@@ -7,6 +7,7 @@ use App\Http\Requests\MassDestroyUserRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Role;
+use App\Attributes;
 use App\AttributeValue;
 use Gate;
 use Illuminate\Http\Request;
@@ -18,49 +19,41 @@ class AttributeValueController extends Controller
     {
         abort_if(Gate::denies('user_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // $d['title'] = 'Categories';
+        $d['title'] = 'Attribute Values';
 
-        // $category = Categories::all();
+        $q = AttributeValue::select('attributes.title as attribute', 'attributes.id as attr_id', 'attributes_value.*')->leftJoin('attributes', 'attributes_value.attr_id', '=', 'attributes.id');
+        if(isset($_GET['attr'])) {
+            $q->where('attr_id', $_GET['attr']);
+        }
+        $attributes = $q->get();
+        $d['attributes'] = $attributes;
 
-        // foreach($category as $key => $val){
-        //     $parent = Categories::where('id','=',$val->id)->where('parent_id','!=',0)->first();
-        //     if(!empty($parent)){
-        //         $category[$key]['parent_name'] = $parent->title;
-        //     }
-        // }
+        if(!isset($_GET['cat']) || $_GET['cat'] == "" || !isset($_GET['attr']) || $_GET['attr'] == "") {
+            // 
+            return redirect()->route('admin.category.index');
+        }
 
-        // $d['category'] = $category;
-        // return view('admin.category.index', $d);
-
-        return view('admin.attribute.index');
+        return view('admin.attribute-value.index', $d);
     }
 
     public function create()
     {
-
-        die('sdfdx');
+       
         abort_if(Gate::denies('user_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $d['title'] = 'Add Attribute';
-
-        $d['parent_cat'] = Categories::where('parent_id','=',0)->get();
-
-
-        return view('admin.attribute.create');
+        $d['title'] = 'Add Attribute Value';
+        $d['Attributes'] = Attributes::all();
+        return view('admin.attribute-value.create',$d);
     }
 
     public function store(Request $request)
     {
-        $Categories = Categories::updateOrCreate(['id'=>$request->id],[
-
-            'parent_id' => $request->parent,
+        $attribute = AttributeValue::updateOrCreate(['id'=>$request->id],[
+            'attr_id' => $request->attribute,
+            'cat_id' => $request->category,
             'title'     => $request->title,
-            'description'     => $request->description,
-
-
         ]);
 
-        return redirect()->route('admin.category.index');
+        return redirect()->route('admin.attribute-value.index', ['attr' => $request->attribute, 'cat' => $request->category]);
 
     }
 
@@ -68,11 +61,12 @@ class AttributeValueController extends Controller
     {
         abort_if(Gate::denies('user_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $d['title'] = 'Edit Category';
-        $d['parent_cat'] = Categories::where('parent_id','=',0)->get();
-        $d['category'] = Categories::where('id','=',$id)->first();
+        $d['title'] = 'Edit Attribute Value';
+        $d['attributeValue'] = AttributeValue::where('id', $id)->first();
+        // $d['parent_cat'] = Categories::where('parent_id','=',0)->get();
+        // $d['category'] = Categories::where('id','=',$id)->first();
 
-        return view('admin.category.create', $d);
+        return view('admin.attribute-value.create', $d);
     }
 
   
@@ -86,11 +80,13 @@ class AttributeValueController extends Controller
         return view('admin.users.show', compact('user'));
     }
 
-    public function destroy(Categories $category)
+    public function destroy($id)
     {
         abort_if(Gate::denies('user_delete'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $category->delete();
+        $attr = AttributeValue::where('id','=',$id)->first();
+
+        $attr->delete();
 
         return back();
 
