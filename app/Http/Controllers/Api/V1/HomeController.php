@@ -1520,6 +1520,16 @@ class HomeController extends Controller
             // }
 
             $reviews = Reviews::where('seller_id', $seller_id)->get();
+            foreach ($reviews as $review_key => $review) {
+                // code...
+                $seller = json_decode($review->extra_data);
+                foreach ($seller as $sk => $sv) {
+                    // code...
+                    $reviews[$review_key][$sk] = $sv;
+                }
+                unset($reviews[$review_key]['deleted_at']);
+                unset($reviews[$review_key]['extra_data']);
+            }
             return response()->json([
                 'status' => true, 
                 'message' => 'Seller Reviews!',
@@ -1583,7 +1593,7 @@ class HomeController extends Controller
                     'seller_name' => $seller->name,
                     'seller_id' => $seller->id,
                     'user_name' => $user->name,
-                    'user_profile_pic' => ($user->profile_pic!=null)?url($user->profile_pic):'',
+                    'user_profile_pic' => ($user->profile_pic!=null)?$user->profile_pic:'',
                     'user_id' => $user->id,
                 ]),
             ]);
@@ -1727,6 +1737,67 @@ class HomeController extends Controller
         }
         
         return response()->json($response);
+    }
+
+
+    public function sellerListedProducts(Request $request) {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            // $validator = \Validator::make($request->all() , [
+            //     'search' => 'required',
+            // ]);
+
+            // if ($validator->fails()) {
+            //     $response = $validator->errors();
+            //     return response()
+            //         ->json(['status' => false, 'message' => implode("", $validator->errors()
+            //         ->all()) ], 200);
+            // }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $products = Product::where('seller_id', $user->id)->get();
+
+            // $products = Product::where('category_id', $cv->id)->take(10)->get();
+            $data = [];
+            $product_lists = [];
+
+            if(count($products) > 0) {
+                // 
+                foreach ($products as $pk => $pv) {
+                    // code...
+                    $product_lists[] = array(
+                        'id' => $pv->id, 
+                        'name' => $pv->name, 
+                        'price' => $pv->price, 
+                        'featured_image' => ($pv->featured_image != null) ? url($pv->featured_image) : url('images/product/no-image.jpeg'), 
+                        'date' => Carbon::parse($pv->listed_on)->format('m/d/Y')
+                    );
+                }
+            }
+
+            $data['products'] = $product_lists;
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Products!',
+                'data' => $data,
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
     }
 
 }

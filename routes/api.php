@@ -94,6 +94,11 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     Route::post('add-seller-reviews', [HomeController::class, 'AddSellerReviews']);
 
     // Search Product
-    Route::post('search', [HomeController::class, 'SearchProduct']); 
+    Route::post('search', [HomeController::class, 'SearchProduct']);
+
+    // Seller Listed Products
+    Route::post('seller-listed-products', [HomeController::class, 'sellerListedProducts']); 
+
+    
 
 });
