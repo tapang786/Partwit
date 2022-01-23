@@ -56,37 +56,9 @@ class ReportsController extends Controller
     {
         //
 
-        // $request->validate([
-        //     'file' => 'required|mimes:pdf,xlx,csv|max:2048',
-        // ]);
-        
-        //$fileName = time().'.'.$request->banner_image->extension();  
-
-        if(isset($request->banner_image)) {
-            $fileName = time().'_banner_'.$request->banner_image->getClientOriginalName();
-            $request->banner_image->move(base_path('images/banners'), $fileName);
-
-            if(file_exists(base_path('images/banners/'.$request->banner_image_old)) && isset($request->banner_image_old)) { 
-                unlink(base_path('images/banners/'.$request->banner_image_old));
-            }
-
-        } else {
-            $fileName = $request->banner_image_old;
-        }
-
-        $report = Reports::updateOrCreate(
-            [ 'id' => $request->id ],
-            [
-                'title' => $request->title, 
-                'description' => $request->description?$request->description:'', 
-                'start_at' => $request->start_at, 
-                'end_at' => $request->end_at, 
-                'status' => $request->status, 
-                'banner_image' => $fileName, 
-            ]
-        );
-
-        return redirect()->route('admin.reports.index');
+        $report = Reports::updateOrCreate([ 'id' => $request->id ],['status' => $request->status]);
+        return redirect()->back()->with('success', 'Report status updated!');   
+        // return redirect()->route('admin.reports.index');
     }
 
     /**
@@ -112,8 +84,8 @@ class ReportsController extends Controller
         abort_if(Gate::denies('reports_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         $report = Reports::where('id', $id)->first();
-
-        $data['title'] = 'Edit Report';
+        $report->extra_data = json_decode($report->extra_data); 
+        $data['title'] = 'Report';
         $data['report'] = $report;
             
         return view('admin.reports.create', $data);
@@ -137,12 +109,12 @@ class ReportsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Advertisement $advertisement)
+    public function destroy($id)
     {
         //
         abort_if(Gate::denies('reports_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
-
-        $advertisement->delete();
+        $report = Reports::find($id);
+        $report->delete();
 
         return back();
     }

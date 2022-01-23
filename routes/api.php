@@ -99,6 +99,32 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     // Seller Listed Products
     Route::post('seller-listed-products', [HomeController::class, 'sellerListedProducts']); 
 
+    // Seller Profile
+    Route::post('seller-profile', [HomeController::class, 'viewSellerProfile']);
     
+    // All Cards
+    Route::post('all-cards', [HomeController::class, 'allCardsList']);
+
+    // Delete Cards
+    Route::post('delete-card', [HomeController::class, 'deleteCard']);
+
+    // Add Card
+    Route::post('add-card', [HomeController::class, 'addCard']);
+
+    // Subscription Plan List
+    Route::get('subscription-plan-list', [HomeController::class, 'subscriptionList']);
+
+    // Buy Subscription Plan
+    Route::post('buy-subscription-plan', [HomeController::class, 'subscriptionPayment']);
+
+    // Add Item to Save Items
+    Route::post('add-to-save-item', [HomeController::class, 'addToSaveItem']);
+
+    // Save Items List
+    Route::get('save-items-list', [HomeController::class, 'saveItemsList']);
+
+    // Remove from Save Items
+    Route::post('remove-save-item', [HomeController::class, 'removeSaveItem']);
+
 
 });

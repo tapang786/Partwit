@@ -25,7 +25,6 @@ class Notifications extends Model
         'description',
         'status',
         'type',
-        'extra',
-        'date',
+        'meta',
     ];
 }

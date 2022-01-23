@@ -36,7 +36,9 @@ use App\Payments;
 use App\Categories;
 use App\Product;
 use App\Reviews;
-
+use App\SaveItem;
+Use Exception;
+use Illuminate\Database\QueryException;
 class HomeController extends Controller
 {
     /**
@@ -203,8 +205,6 @@ class HomeController extends Controller
 
         return response()->json($response);
     }
-
-    
 
 
     public function getUserData(Request $request)
@@ -754,6 +754,7 @@ class HomeController extends Controller
             } catch(Exception $e) {
                 $response['status'] = "fail";
                 $response['message'] = "Error: ".$e;
+                $response['data'] = [];
             }
             
             return response()->json($response);
@@ -1092,7 +1093,7 @@ class HomeController extends Controller
 
             $subscriptions = Subscription::where('id', $subscription_id)->first();
 
-            require_once(base_path('vendor/stripe').'/init.php');
+            require_once(base_path('stripe-php').'/init.php');
 
             $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
 
@@ -1128,9 +1129,9 @@ class HomeController extends Controller
             //     ],
             // ]);
 
-            // return $tok->card->id; 
+            // return $tok->id; 
 
-            if($new) {
+            if($isCardNew) {
                 // 
                 $card_token = '';
 
@@ -1148,11 +1149,11 @@ class HomeController extends Controller
                     return response()->json(['status' => 'fail', 'message' => $e->getError()->message], 200);
                 }
               
-                $new_card = UserCard::insert([
-                    'user_id' => $user->id, 
-                    'user_customer_id' => $customer_id,
-                    'card_token' => $card_token,
-                ]);
+                // $new_card = UserCard::insert([
+                //     'user_id' => $user->id, 
+                //     'user_customer_id' => $customer_id,
+                //     'card_token' => $card_token,
+                // ]);
               
 
             } else {
@@ -1183,7 +1184,7 @@ class HomeController extends Controller
 
             if($paymentIntent->status == 'succeeded') {
                 // 
-                Payments::insert([
+                DB::table('plan_payments')->insert([
                     'user_id' => $user->id, 
                     'subscription_id' => $subscription_id,
                     'status' => $paymentIntent->status,
@@ -1227,8 +1228,19 @@ class HomeController extends Controller
             $parameters = $request->all();
             extract($parameters);
             
-            require_once(base_path('vendor/stripe').'/init.php');
+            require_once(base_path('stripe-php').'/init.php');
             $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
+
+            $card = $stripe->tokens->create([
+              'card' => [
+                'number' => '4242424242424242',
+                'exp_month' => 1,
+                'exp_year' => 2023,
+                'cvc' => '314',
+              ],
+            ]);
+
+            // dd($card);
 
             if($user->customer_id == "") {
                 // 
@@ -1248,8 +1260,8 @@ class HomeController extends Controller
                 $customer_id = $user->customer_id;
             }
             
-            $cardinfo = $stripe->customers->createSource($customer_id, ['source' => $src_token] ); 
-
+            $cardinfo = $stripe->customers->createSource($customer_id, ['source' => $src_token] ); // tok_1KJj5DItQT8ZzyO136OX3eZK
+            //$cardinfo = $stripe->customers->createSource($customer_id, ['source' => $card->id] ); // tok_1KJj5DItQT8ZzyO136OX3eZK
 
             if(!empty($cardinfo)) {
                 // 
@@ -1280,13 +1292,14 @@ class HomeController extends Controller
             if (Auth::guard('api')->check()) {
                 $user = Auth::guard('api')->user();
             }
+
             if(!$user) {
                 return response()->json(['status' => 'fail', 'message' => 'login token error!']);
             }
 
             $parameters = $request->all();
             extract($parameters);
-            require_once(base_path('vendor/stripe').'/init.php');
+            require_once(base_path('stripe-php').'/init.php');
             $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
 
             $cards = [];
@@ -1324,7 +1337,7 @@ class HomeController extends Controller
             }
             $parameters = $request->all();
             extract($parameters);
-            require_once(base_path('vendor/stripe').'/init.php');
+            require_once(base_path('stripe-php').'/init.php');
             $stripe = new \Stripe\StripeClient(env('STRIPE_SECRET'));
 
             $sts = $stripe->customers->deleteSource(
@@ -1640,6 +1653,7 @@ class HomeController extends Controller
             extract($parameters);
 
             $products = Product::where('name', 'like', '%' .$search. '%')
+            // ->whereDate('expires_on', '>', Carbon::now())
             ->orWhere('short_desc', 'like', '%' .$search. '%')
             ->orWhere('short_desc', 'like', '%' .$search. '%')
             ->get();
@@ -1751,21 +1765,13 @@ class HomeController extends Controller
                 return response()->json(['status' => false, 'message' => 'login token error!']);
             }
 
-            // $validator = \Validator::make($request->all() , [
-            //     'search' => 'required',
-            // ]);
-
-            // if ($validator->fails()) {
-            //     $response = $validator->errors();
-            //     return response()
-            //         ->json(['status' => false, 'message' => implode("", $validator->errors()
-            //         ->all()) ], 200);
-            // }
-
             $parameters = $request->all();
             extract($parameters);
 
-            $products = Product::where('seller_id', $user->id)->get();
+            $products = Product::where('seller_id', $user->id)
+                        // ->whereDate('expires_on', '>', Carbon::now())
+                        ->orderBy('created_at', 'DESC')
+                        ->get();
 
             // $products = Product::where('category_id', $cv->id)->take(10)->get();
             $data = [];
@@ -1791,6 +1797,240 @@ class HomeController extends Controller
                 'status' => true, 
                 'message' => 'Products!',
                 'data' => $data,
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+
+    public function viewSellerProfile(Request $request) {
+        // code...
+
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $validator = \Validator::make($request->all() , [
+                'seller_id' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $seller = User::select('id', 'name', 'profile_pic')->where('id', $seller_id)->first();
+            $rating_sum = Reviews::where('seller_id', $seller_id)->sum('stars');
+            $rating_total = Reviews::where('seller_id', $seller_id)->count();
+
+            $rating = $rating_sum / $rating_total;
+            $seller['ratting'] = $rating; 
+            $seller['profile_pic'] = url($seller->profile_pic); 
+            $products = Product::where('seller_id', $user->id)
+                            // ->whereDate('expires_on', '>', Carbon::now())
+                            ->orderBy('created_at', 'DESC')
+                            ->get();
+
+            $data['seller'] = $seller;
+            $product_lists = [];
+            
+            if(count($products) > 0) {
+                // 
+                foreach ($products as $pk => $pv) {
+                    // code...
+                    $product_lists[] = array(
+                        'id' => $pv->id, 
+                        'name' => $pv->name, 
+                        'price' => $pv->price, 
+                        'featured_image' => ($pv->featured_image != null) ? url($pv->featured_image) : url('images/product/no-image.jpeg'), 
+                        'date' => Carbon::parse($pv->listed_on)->format('m/d/Y')
+                    );
+                }
+            }
+
+            $data['products'] = $product_lists;
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Products!',
+                'data' => $data,
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+
+    public function addToSaveItem(Request $request) {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $validator = \Validator::make($request->all() , [
+                'product_id' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            // SaveItem
+            $saveItem = SaveItem::where('product_id', $product_id)->where('user_id', $user->id)->first();
+
+            if(isset($saveItem)) {
+                return response()->json(['status' => false, 'message' => 'Product Already in Save List!']);
+            }
+            
+            try {
+
+                $product = Product::where('id', $product_id)->first();
+
+                $meta['date'] = $product->listed_on;
+                $meta['featured_image'] = $product->featured_image;
+                SaveItem::insert([
+                    'user_id' => $user->id, 
+                    'product_id' => $product_id,
+                    'product_name' => $product->name,
+                    'price' => $product->price,
+                    'meta' => json_encode($meta),
+                ]);
+
+            } catch(Exception $e) {
+                // 
+               return response()->json(['status' => false, 'message' => 'Error: '.$e->getMessage()]);
+            }
+
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Added to Save Items!',
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+
+    public function removeSaveItem(Request $request)
+    {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $validator = \Validator::make($request->all() , [
+                'save_item_id' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            // SaveItem
+            $saveItem = SaveItem::where('id', $save_item_id)->first();
+
+            if(!isset($saveItem)) {
+                return response()->json(['status' => false, 'message' => 'Item not found!']);
+            }
+            
+            try {
+                // 
+                $saveItem->delete();
+
+            } catch(Exception $e) {
+                // 
+               return response()->json(['status' => false, 'message' => 'Error: '.$e->getMessage()]);
+            }
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Item deleted Successfully!',
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+
+    public function saveItemsList(Request $request) {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            // SaveItem
+            $saveItems = SaveItem::where('user_id', $user->id)->get();
+
+            if(count($saveItems) == 0) {
+                return response()->json(['status' => false, 'message' => 'No Items found!']);
+            }
+            
+            foreach ($saveItems as $key => $item) {
+                // code...
+                $meta = json_decode($item->meta);
+                $item['date'] = $meta->date;
+                $item['featured_image'] = url($meta->featured_image);
+                unset($item['meta']);
+                unset($item['created_at']);
+                unset($item['updated_at']);
+                unset($item['deleted_at']);
+            }
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Save Items List!',
+                'data' => $saveItems,
             ]);
 
         } catch(Exception $e) {

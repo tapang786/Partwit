@@ -29,45 +29,31 @@
                         <th>Seller</th>
                         <th>Reason</th>
                         <th>Description</th>
-                        <th>{{ __('Created At') }}</th>
                         <th> Status </th>
+                        <th>{{ __('Created At') }}</th>
                         <th>&nbsp;</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($reports as $key => $report)
                         <tr data-entry-id="{{ $report->id }}">
+                            <td>{{ $report->id ?? '' }}</td>
+                            <td>{{ $report->extra_data->product ?? '' }}</td>
+                            <td>{{ ucwords($report->extra_data->seller_name) }}</td>
+                            <td>{{ ucwords($report->reason) }}</td>
+                            <td>{{ ucwords($report->description) }}</td>
+                            <td>{{ ucwords($report->status) }}</td>
+                            <td>{{ \Carbon\Carbon::parse($report->created_at)->format('d/m/Y')}}</td>
                             <td>
-                                {{ $report->id ?? '' }}
-                            </td>
-                            <td>
-                                {{ $report->extra_data->product ?? '' }}
-                            </td>
-                            <td>
-                                {{ ucwords($report->extra_data->seller_name) }}
-                            </td>
-                            <td>
-                                {{ ucwords($report->reason) }}
-                            </td>
-                            <td>
-                                {{ ucwords($report->description) }}
-                            </td>
-                            <td>
-                                {{ ucwords($report->status) }}
-                            </td>
-                            <td>
-                                {{ \Carbon\Carbon::parse($report->created_at)->format('d/m/Y')}}
-                            </td>
-                            <td>
-                                @can('report_view')
+                                {{-- @can('report_view')
                                 <a class="btn btn-xs btn-primary" href="{{ route('admin.reports.show', $report->id) }}">
                                     {{ trans('global.view') }}
                                 </a>
-                                @endcan
+                                @endcan --}}
                                 
                                 @can('report_edit')
                                 <a class="btn btn-xs btn-info" href="{{ route('admin.reports.edit', $report->id) }}">
-                                    {{ trans('global.edit') }}
+                                    {{ trans('global.view') }}
                                 </a>
                                 @endcan
 
@@ -80,7 +66,6 @@
                                     </form>
                                 @endcan
                             </td>
-
                         </tr>
                     @endforeach
                 </tbody>

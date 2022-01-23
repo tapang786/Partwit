@@ -23,6 +23,7 @@ class Subscription extends Model
         'title',
         'description',
         'price',
+        'product_limit',
         'type',
         'number',
         'created_at',

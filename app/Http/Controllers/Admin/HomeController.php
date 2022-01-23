@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Admin;
 class HomeController
 {
     public function index()
-    {
-        return view('home');
+    {   
+        $data['title'] = 'Dashboard'; 
+
+        $revenue = '';
+        return view('home', $data);
     }
 }

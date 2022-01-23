@@ -58,6 +58,10 @@ Route::group(['prefix' => 'dashboard', 'as' => 'admin.', 'namespace' => 'Admin',
     Route::resource('subscription', 'SubscriptionController');
     Route::delete('subscription/destroy', 'SubscriptionController@massDestroy')->name('subscription.massDestroy');
 
+
+    // Site Setting
+    Route::resource('settings', 'SettingController');
+
 });
 
 Route::get('ckeditor', 'CkeditorController@index');

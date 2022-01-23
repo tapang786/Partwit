@@ -20,17 +20,11 @@ class CategoryController extends Controller
     {
         abort_if(Gate::denies('user_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $d['title'] = 'Attributes';
+        $d['title'] = 'Category';
 
-        $Attributes = Attributes::all();
+        $Categories = Categories::all();
 
-        foreach($Attributes as $key => $val ){
-
-            $cat = Categories::where('id','=',$val->id)->first();
-            $atrVal = AttributeValue::where('attr_id','=',$val->id)->get();
-            $Attributes[$key]['name'] = $cat->title;
-            $Attributes[$key]['atrVal'] = $atrVal;
-        }
+        
 
         // foreach($category as $key => $val){
         //     $parent = Categories::where('id','=',$val->id)->where('parent_id','!=',0)->first();
@@ -39,7 +33,7 @@ class CategoryController extends Controller
         //     }
         // }
         //dd($Attributes);
-        $d['Attributes'] = $Attributes;
+        $d['Categories'] = $Categories;
         return view('admin.category.index', $d);
     }
 
