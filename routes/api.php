@@ -88,7 +88,10 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     Route::post('report-product', [ProductsController::class, 'ReportProduct']);
 
     // Seller Reviews
-    Route::post('seller-reviews', [HomeController::class, 'SellerReviews']); 
+    Route::post('seller-reviews', [HomeController::class, 'SellerReviews']);
+
+    // Seller Self Reviews
+    Route::post('seller-self-reviews', [HomeController::class, 'sellerSelfReviews']); 
 
     // Add Seller Reviews
     Route::post('add-seller-reviews', [HomeController::class, 'AddSellerReviews']);
@@ -112,7 +115,7 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     Route::post('add-card', [HomeController::class, 'addCard']);
 
     // Subscription Plan List
-    Route::get('subscription-plan-list', [HomeController::class, 'subscriptionList']);
+    Route::post('subscription-plan-list', [HomeController::class, 'subscriptionList']);
 
     // Buy Subscription Plan
     Route::post('buy-subscription-plan', [HomeController::class, 'subscriptionPayment']);
@@ -126,5 +129,7 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     // Remove from Save Items
     Route::post('remove-save-item', [HomeController::class, 'removeSaveItem']);
 
+    // Notifications
+    Route::get('notifications', [HomeController::class, 'notificationsList']);
 
 });

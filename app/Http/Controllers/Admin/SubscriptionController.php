@@ -71,6 +71,7 @@ class SubscriptionController extends Controller
                 'number' => $request->number, 
                 'description' => $request->description?$request->description:'', 
                 'price' => $request->price, 
+                'subscription_type' => $request->subscription_type, 
             ]
         );
 

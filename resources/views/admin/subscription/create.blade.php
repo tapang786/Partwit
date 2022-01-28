@@ -26,6 +26,20 @@
 
             <div class="form-group {{ $errors->has('price') ? 'has-error' : '' }}">
                 <label for="price">{{ trans('cruds.subscription.fields.price') }}*</label>
+                <?php $subscription_types = ['free' => 'Free', 'featured' => 'Featured', 'premium' => 'Premium']; ?>
+                <select name="subscription_type" class="form-control" required placeholder="Subscription Type">
+                    <option>Select Type</option>
+                    @foreach($subscription_types as $k => $v)
+                        <option value="{{$k}}" {{ isset($subscription) ? ($subscription->subscription_type == $k)?'selected':'' : '' }}>{{$v}}</option>
+                    @endforeach
+                </select>
+                <p class="helper-block">
+                    {{ trans('cruds.subscription.fields.title_helper') }}
+                </p>
+            </div>
+
+            <div class="form-group {{ $errors->has('price') ? 'has-error' : '' }}">
+                <label for="price">{{ trans('cruds.subscription.fields.price') }}*</label>
                 <input type="text" id="price" name="price" class="form-control" value="{{ old('price', isset($subscription) ? $subscription->price : '') }}">
                 @if($errors->has('price'))
                     <p class="help-block">
@@ -162,7 +176,12 @@
 @parent
 <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
 <script>
-    CKEDITOR.replace( 'description' );
+    // CKEDITOR.replace( 'description' );
+
+    CKEDITOR.replace('description', {
+        filebrowserUploadUrl: "{{route('ckeditor.upload', ['_token' => csrf_token() ])}}",
+        filebrowserUploadMethod: 'form'
+    });
 </script>
 
 

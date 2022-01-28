@@ -743,11 +743,19 @@ class HomeController extends Controller
             }
             $user_id = $user->id;
 
+            $parameters = $request->all();
+            extract($parameters);
+
             $response = [];
 
             try {
                 // 
+
                 $subscriptions = Subscription::all();
+                if(isset($subscription_type)) {
+                    $subscriptions = Subscription::where('subscription_type', $subscription_type)->get();
+                }
+                
                 $response['status'] = "success";
                 $response['message'] = "Subscription List!";
                 $response['data'] = $subscriptions;
@@ -1555,6 +1563,46 @@ class HomeController extends Controller
             return response()->json($response);
         }
     }
+
+
+    public function sellerSelfReviews(Request $request) {
+        // code...
+
+        try {
+            //
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $reviews = Reviews::where('seller_id', $user->id)->get();
+            foreach ($reviews as $review_key => $review) {
+                // code...
+                $seller = json_decode($review->extra_data);
+                foreach ($seller as $sk => $sv) {
+                    // code...
+                    $reviews[$review_key][$sk] = $sv;
+                }
+                unset($reviews[$review_key]['deleted_at']);
+                unset($reviews[$review_key]['extra_data']);
+            }
+            return response()->json([
+                'status' => true, 
+                'message' => (count($reviews) > 0)?'Self Reviews!':'No Reviews found!',
+                'data' => (count($reviews) > 0)?$reviews:[],
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
     
     public function AddSellerReviews(Request $request)
     {
@@ -1836,8 +1884,11 @@ class HomeController extends Controller
             $seller = User::select('id', 'name', 'profile_pic')->where('id', $seller_id)->first();
             $rating_sum = Reviews::where('seller_id', $seller_id)->sum('stars');
             $rating_total = Reviews::where('seller_id', $seller_id)->count();
-
-            $rating = $rating_sum / $rating_total;
+            if($rating_sum > 0 && $rating_total > 0) {
+                $rating = $rating_sum / $rating_total;
+            } else {
+                $rating = 0;
+            }
             $seller['ratting'] = $rating; 
             $seller['profile_pic'] = url($seller->profile_pic); 
             $products = Product::where('seller_id', $user->id)
@@ -2031,6 +2082,53 @@ class HomeController extends Controller
                 'status' => true, 
                 'message' => 'Save Items List!',
                 'data' => $saveItems,
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+    // Notifications List
+    public function notificationsList(Request $request) {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $notifications = Notifications::where('user_id', $user->get())->get(); 
+
+            $data = [];
+            $notifications_list = [];
+
+            if(count($notifications) > 0) {
+                // 
+                foreach ($notifications as $pk => $pv) {
+                    // code...
+                    $notifications_list[] = array(
+                        'id' => $pv->id, 
+                        'type' => $pv->type, 
+                        'title' => $pv->title, 
+                        'description' => isset($pv->description) ? $pv->featured_image : '', 
+                        'meta' => $pv->meta,
+                        'status' => $pv->status,
+                    );
+                }
+            }
+
+            $data['notifications'] = $notifications_list;
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Notifications!',
+                'data' => $data,
             ]);
 
         } catch(Exception $e) {
