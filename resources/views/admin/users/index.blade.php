@@ -28,7 +28,7 @@
                         <th>{{ trans('cruds.user.fields.name') }}</th>
                         <th>{{ trans('cruds.user.fields.email') }}</th>
                         <th>Status</th>
-                        <th>Role</th>
+                        <th>Plan</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -50,9 +50,10 @@
                                     @endif
                                 @endcan</td>
                             <td>
-                                @foreach($user->roles as $key => $item)
-                                    <span class="badge badge-info">{{ $item->title }}</span>
-                                @endforeach
+                                {{-- @foreach($user->roles as $key => $item)
+                                    
+                                @endforeach --}}
+                                <span class="badge badge-info">{{ $item->plan??'Free' }}</span>
                             </td>
                             <td>
                                 @can('user_show')

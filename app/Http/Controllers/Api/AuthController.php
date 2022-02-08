@@ -7,8 +7,8 @@ use Illuminate\Http\Request;
 use Auth;
 use App\User;
 use App\SocialAccount;
+use App\UserSubscription;
 use DB;
-
 use App\Helper;
 use Carbon\Carbon;
 use Hash;
@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 
 use App\UserVerificationToken;
+use App\Reviews;
 
 use App\Mail\UserMail;
 
@@ -109,6 +110,8 @@ class AuthController extends Controller
         $user_info->load('roles');
         $role = $user_info->roles[0]->id;
         unset($user_info['roles']);
+        $user_info['plan'] = 'Free';
+        $user_info['rating'] = 0;
 
         return response()->json([
             'status' => true, 
@@ -183,13 +186,22 @@ class AuthController extends Controller
             $user = Helper::singleUserInfoDataChange($user->id, $user);
             $role = $user->roles[0]->id;
             unset($user['roles']);
+            $UserSubscription = UserSubscription::where('user_id', $user->id)->first();
+            $user['plan'] = 'Free';
+            $user['rating'] = 0;
+            if(isset($UserSubscription)) {
+                $user['plan'] = $UserSubscription->title;
+            }
+            
+            $rating_sum = Reviews::where('seller_id', $user_id)->sum('stars');
+            $rating_total = Reviews::where('seller_id', $user_id)->count();
 
-            // if($user->name == "" && $user->name == null){
-            //     $user['isRegistrationComplete'] = false;
-            // }
-            // else{
-            //     $user['isRegistrationComplete'] = true;
-            // }
+            if($rating_sum > 0 && $rating_total > 0) {
+                $rating = $rating_sum / $rating_total;
+            } else {
+                $rating = 0;
+            }
+            $user['rating'] = $rating; 
 
             return response()->json([
                 'status' => true, 

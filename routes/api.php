@@ -44,6 +44,9 @@ Route::get('terms-conditions', [HomeController::class, 'termsConditions']);
 // About PartWit
 Route::get('about-partwit', [HomeController::class, 'AboutPartwit']);
 
+// Welcome to PartWit
+Route::get('welcome-to-partwit', [HomeController::class, 'WelcomeToPartwit']);
+
 // Verify User Email Opt
 Route::post('verify-user-email-otp', [HomeController::class, 'verifyUserOtpVerificationMail']);
 
@@ -80,6 +83,9 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
 
     // Show Product
     Route::post('product-show', [ProductsController::class, 'show']); 
+
+    // Delete Product
+    Route::post('product-delete', [ProductsController::class, 'delete']); 
 
     // Report Reasons
     Route::get('report-reasons', [HomeController::class, 'reportReasons']);
@@ -131,5 +137,12 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
 
     // Notifications
     Route::get('notifications', [HomeController::class, 'notificationsList']);
+
+
+    // Categories List
+    Route::get('category-list', [HomeController::class, 'categoryList']);
+
+    // Attributes List
+    Route::post('attributes-list', [HomeController::class, 'attributesList']);
 
 });

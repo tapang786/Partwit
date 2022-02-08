@@ -10,7 +10,7 @@ use App\Subscription;
 use App\UserSubscription;
 use Carbon\Carbon;
 use App\Notifications;
-
+use Exception;
 
 class Helper
 {
@@ -28,6 +28,21 @@ class Helper
         return $file;
         
     }
+
+    // public static function createImage2($img, $user_id = 0)
+    // {
+
+    //     $folderPath = "images/";
+    //     $image_parts = explode(";base64,", $img);
+    //     $image_type_aux = explode("image/", $image_parts[0]);
+    //      $image_type = $image_type_aux[1];
+    //     $image_base64 = base64_decode($img);
+    //     //$image_type = '.jpg';
+    //     $file = $folderPath . uniqid()."_".$user_id. '_userprofile' . $image_type;
+    //     file_put_contents($file, $image_type_aux[0]);
+    //     return $file;
+        
+    // }
 
     // public static function addUserImages($imgs=array(), $user_id=0)
     // {
@@ -272,17 +287,28 @@ class Helper
                 break;
         }
 
-        $user_subscription = UserSubscription::updateOrCreate(
-            [ 'user_id' => $user_id ],
-            [
-                'subscription_id' => $subscription->id,
-                'title' => $subscription->title, 
-                'description' => $subscription->description?$subscription->description:'', 
-                'price' => $subscription->price, 
-                'start_date' => Carbon::now(), 
-                'end_date' => $end_date, 
-            ]
-        );
+        try {
+            // 
+
+            $user_subscription = UserSubscription::updateOrCreate(
+                [ 'user_id' => $user_id ],
+                [
+                    'subscription_id' => $subscription->id,
+                    'title' => $subscription->title, 
+                    'description' => $subscription->description?$subscription->description:'', 
+                    'price' => $subscription->price, 
+                    'start_date' => Carbon::now(), 
+                    'end_date' => $end_date, 
+                ]
+            );
+
+            User::where('id', $user_id)->update([
+                'subscription_plan' => $subscription->id,
+            ]);
+
+        } catch(Exception $e) {
+            echo "Error: ".$e;
+        }
 
         if($user_subscription) {
             return true; 

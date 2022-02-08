@@ -6,6 +6,8 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Reviews;
+use App\Notifications;
 
 class Controller extends BaseController
 {
@@ -27,12 +29,29 @@ class Controller extends BaseController
 
     }
 
+    public function addNotification($user_id=0, $type, $title='', $description='', $meta, $status='new') {
+        // code...
+        $notification = Notifications::create([
+            'user_id' => $user_id, 
+            'type' => $type, 
+            'title' => $title, 
+            'description' => $description, 
+            'meta' => $meta, 
+            'status' => $status, 
+        ]);
+
+        if($notification) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public function sellerProfile($sellerInfo)
     {
         // code...
         $sellerInfo = json_decode($sellerInfo, true);
         $keys = array("id", "name", "rating", "profile_pic");
-
         foreach ($sellerInfo as $key => $value) {
             // code...
             if (!in_array($key, $keys))
@@ -41,7 +60,16 @@ class Controller extends BaseController
             }
         }
 
-        $sellerInfo['rating'] = isset($sellerInfo['rating']) ? $sellerInfo['rating'] : '0' ;
+        $rating_sum = Reviews::where('seller_id', $sellerInfo['id'])->sum('stars');
+        $rating_total = Reviews::where('seller_id', $sellerInfo['id'])->count();
+        // dd($rating_total);
+        if($rating_sum > 0 && $rating_total > 0) {
+            $rating = $rating_sum / $rating_total;
+        } else {
+            $rating = 0;
+        }
+
+        $sellerInfo['rating'] = $rating ;
         $sellerInfo['profile_pic'] = ($sellerInfo['profile_pic'] != "")?url($sellerInfo['profile_pic']):url('images/placeholder.png');
         return $sellerInfo;
 

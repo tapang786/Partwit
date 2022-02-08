@@ -30,8 +30,14 @@ class Product extends Model
         'expires_on',
         'featured_image',
         'all_images',
+        'view_count',
+        'status',
         'created_at',
         'updated_at',
         'deleted_at',
     ];
+
+    public function category(){
+        return $this->belongsTo('App\Categories');
+    }
 }

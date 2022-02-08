@@ -19,5 +19,9 @@ class AttributeValue extends Model
         'updated_at'
     ];
 
+    public function attributes() {
+        // 
+        return $this->belongsTo('App\Attributes', 'attr_id');
+    }
    
 }

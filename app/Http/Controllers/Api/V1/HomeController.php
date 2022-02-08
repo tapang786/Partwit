@@ -27,8 +27,6 @@ use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use App\Subscription;
 use App\Reason;
-use App\DriverRoutes;
-use App\DriverAssignRoutes;
 use App\Posts;
 use App\Notifications;
 use App\UserCard;
@@ -36,9 +34,16 @@ use App\Payments;
 use App\Categories;
 use App\Product;
 use App\Reviews;
+use App\Attributes;
 use App\SaveItem;
+use App\AttributeValue;
+use App\UserSubscription;
 Use Exception;
 use Illuminate\Database\QueryException;
+
+
+
+
 class HomeController extends Controller
 {
     /**
@@ -750,10 +755,11 @@ class HomeController extends Controller
 
             try {
                 // 
-
-                $subscriptions = Subscription::all();
+                // $subscriptions = Subscription::all();
                 if(isset($subscription_type)) {
                     $subscriptions = Subscription::where('subscription_type', $subscription_type)->get();
+                } else {
+                    $subscriptions = Subscription::where('subscription_type', "!=", 'featured')->get();
                 }
                 
                 $response['status'] = "success";
@@ -1028,6 +1034,27 @@ class HomeController extends Controller
         }
     }
 
+    public function WelcomeToPartwit()
+    {
+        // code...
+        try {
+
+            $page = Posts::where('slug', 'welcome-to-partwit')->where('status', 'publish')->first();
+            $response['status'] = true;
+            $response['message'] = "Welcome to PartWit";
+            $response['data'] = $page;
+            
+            return response()->json($response);
+
+        } catch(Exception $e) {
+            $response['status'] = "fail";
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+    
+
 
     public function updateNotification(Request $request)
     {
@@ -1205,8 +1232,27 @@ class HomeController extends Controller
 
                 Helper::updateUserSubscriptionPlan($user->id, $subscription_id);
                 // Helper::update_user_meta($user->id, 'subscription', 'premium');
+
+                $user = Helper::singleUserInfoDataChange($user->id, $user);
                 
-                return response()->json(['status' => 'success', 'message' => "payment succeeded", 'data'=>$paymentIntent ], 200);
+                $UserSubscription = UserSubscription::where('user_id', $user->id)->first();
+                $user['plan'] = 'Free';
+                $user['rating'] = 0;
+                if(isset($UserSubscription)) {
+                    $user['plan'] = $UserSubscription->title;
+                }
+                
+                $rating_sum = Reviews::where('seller_id', $user->id)->sum('stars');
+                $rating_total = Reviews::where('seller_id', $user->id)->count();
+
+                if($rating_sum > 0 && $rating_total > 0) {
+                    $rating = $rating_sum / $rating_total;
+                } else {
+                    $rating = 0;
+                }
+                $user['rating'] = $rating;
+                
+                return response()->json(['status' => 'success', 'message' => "payment succeeded", 'user_info' => $user, 'data'=>$paymentIntent ], 200);
 
             } else {
                 // 
@@ -1659,6 +1705,9 @@ class HomeController extends Controller
                 ]),
             ]);
 
+            $meta = ['customer_id'=>$user->id,'customer_name'=>$user->name];
+
+            $notification = $this->addNotification($seller_id, 'review', 'New Review', 'You have got a new review!', json_encode($meta), 'new');
 
             return response()->json([
                 'status' => true, 
@@ -1702,7 +1751,7 @@ class HomeController extends Controller
 
             $products = Product::where('name', 'like', '%' .$search. '%')
             // ->whereDate('expires_on', '>', Carbon::now())
-            ->orWhere('short_desc', 'like', '%' .$search. '%')
+            // ->orWhere('short_desc', 'like', '%' .$search. '%')
             ->orWhere('short_desc', 'like', '%' .$search. '%')
             ->get();
 
@@ -1816,12 +1865,17 @@ class HomeController extends Controller
             $parameters = $request->all();
             extract($parameters);
 
-            $products = Product::where('seller_id', $user->id)
+            $q = Product::where('seller_id', $user->id)
                         // ->whereDate('expires_on', '>', Carbon::now())
-                        ->orderBy('created_at', 'DESC')
-                        ->get();
+                        ->orderBy('created_at', 'DESC');
 
-            // $products = Product::where('category_id', $cv->id)->take(10)->get();
+            if (isset($cat_id)) {
+                // code...
+                $q->where('category_id', $cat_id);
+            }
+            
+            $products = $q->get();
+
             $data = [];
             $product_lists = [];
 
@@ -1834,7 +1888,8 @@ class HomeController extends Controller
                         'name' => $pv->name, 
                         'price' => $pv->price, 
                         'featured_image' => ($pv->featured_image != null) ? url($pv->featured_image) : url('images/product/no-image.jpeg'), 
-                        'date' => Carbon::parse($pv->listed_on)->format('m/d/Y')
+                        'date' => Carbon::parse($pv->listed_on)->format('m/d/Y'), 
+                        'view_count' => $pv->view_count,
                     );
                 }
             }
@@ -1884,12 +1939,13 @@ class HomeController extends Controller
             $seller = User::select('id', 'name', 'profile_pic')->where('id', $seller_id)->first();
             $rating_sum = Reviews::where('seller_id', $seller_id)->sum('stars');
             $rating_total = Reviews::where('seller_id', $seller_id)->count();
+
             if($rating_sum > 0 && $rating_total > 0) {
                 $rating = $rating_sum / $rating_total;
             } else {
                 $rating = 0;
             }
-            $seller['ratting'] = $rating; 
+            $seller['rating'] = $rating; 
             $seller['profile_pic'] = url($seller->profile_pic); 
             $products = Product::where('seller_id', $user->id)
                             // ->whereDate('expires_on', '>', Carbon::now())
@@ -2071,7 +2127,7 @@ class HomeController extends Controller
                 // code...
                 $meta = json_decode($item->meta);
                 $item['date'] = $meta->date;
-                $item['featured_image'] = url($meta->featured_image);
+                $item['featured_image'] = ($meta->featured_image)?url($meta->featured_image):'';
                 unset($item['meta']);
                 unset($item['created_at']);
                 unset($item['updated_at']);
@@ -2103,7 +2159,7 @@ class HomeController extends Controller
                 return response()->json(['status' => false, 'message' => 'login token error!']);
             }
 
-            $notifications = Notifications::where('user_id', $user->get())->get(); 
+            $notifications = Notifications::where('user_id', $user->id)->orderBy('id', 'desc')->take(20)->get();
 
             $data = [];
             $notifications_list = [];
@@ -2116,9 +2172,11 @@ class HomeController extends Controller
                         'id' => $pv->id, 
                         'type' => $pv->type, 
                         'title' => $pv->title, 
-                        'description' => isset($pv->description) ? $pv->featured_image : '', 
-                        'meta' => $pv->meta,
+                        'description' => $pv->description, 
+                        'meta' => json_decode($pv->meta),
                         'status' => $pv->status,
+                        'created_at' => $pv->created_at,
+                        'updated_at' => $pv->updated_at,
                     );
                 }
             }
@@ -2137,5 +2195,84 @@ class HomeController extends Controller
             return response()->json($response);
         }
     }
+
+
+    // Category List
+    public function categoryList() {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $categories = Categories::all(); 
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Categories!',
+                'data' => $categories,
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+    // Attributes List
+    public function attributesList(Request $request) {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $validator = \Validator::make($request->all() , [
+                'cat_id' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $data = [];
+            $attributes = Attributes::where('cat_id', $cat_id)->get();
+            
+            foreach ($attributes as $key => $attribute) {
+                // code...
+                $attributes_values = AttributeValue::where('cat_id', $cat_id)->where('attr_id', $attribute->id)->get();
+                $data[$attribute->title]['id'] = $attribute->id;
+                $data[$attribute->title]['title'] = $attribute->title;
+                $data[$attribute->title]['values'] = $attributes_values;
+            }
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Attributes!',
+                'data' => $data,
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
 
 }

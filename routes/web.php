@@ -58,6 +58,15 @@ Route::group(['prefix' => 'dashboard', 'as' => 'admin.', 'namespace' => 'Admin',
     Route::resource('subscription', 'SubscriptionController');
     Route::delete('subscription/destroy', 'SubscriptionController@massDestroy')->name('subscription.massDestroy');
 
+    // purchased-plans
+    Route::get('purchased-plans', 'SubscriptionController@purchasedPlans')->name('purchased-plans');
+
+    // Get  Attributes
+    Route::post('get-attribures', 'ProductsController@getAttributes')->name('get-attribures');
+
+    // Get getAttributesValues
+    Route::post('get-attribures-values', 'ProductsController@getAttributesValues')->name('get-attribures-values');
+
 
     // Site Setting
     Route::resource('settings', 'SettingController');

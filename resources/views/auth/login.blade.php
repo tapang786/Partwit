@@ -1,18 +1,23 @@
 @extends('layouts.app')
 @section('content')
-<nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top">
+<style type="text/css">
+    body {
+        background: #ffd000;
+    }
+</style>
+{{-- <nav class="navbar navbar-expand-lg navbar-transparent navbar-absolute fixed-top">
     <div class="container justify-content-center">
         <div class="navbar-wrapper text-center">
             <a href="#" class="navbar-brand">
-                {{ trans('panel.site_title') }}
             </a>
         </div>
     </div>
-</nav>
+</nav> --}}
 <div class="wrapper wrapper-full-page">
     <div class="page-header login-page header-filter">
         <div class="container">
-            <div class="row align-items-center">
+            <div class="row align-items-center" style="flex-direction: column;">
+                <img src="{{ asset('images/logo.png') }}" height="120" style="margin-bottom: 15px;">
                 <div class="col-lg-4 col-md-6 col-sm-8 ml-auto mr-auto">
                     <div class="card card-login mb-3">
                         <div class="card-header card-header-primary text-center">
@@ -58,19 +63,19 @@
                                     </div>
                                 </div>
                                 <div class="card-footer justify-content-center">
-                                    <button type="submit" class="btn btn-primary btn-link btn-lg">{{ trans('global.login') }}</button>
+                                    <button type="submit" class="btn btn-primary btn-link btn-lg" style="color: #000000; background: #ffd000;">{{ trans('global.login') }}</button>
                                 </div>
                             </form>
                         </div>
                         <!-- /.login-card-body -->
                     </div>
-                    <div class="row">
+                    {{-- <div class="row">
                         <div class="col-6">
-                            <a class="" href="{{ route('password.request') }}">
+                            <a class="" href="{{ route('password.request') }}" style="color: #000000;">
                                 <small>{{ trans('global.forgot_password') }}</small>
                             </a>
                         </div>
-                    </div>
+                    </div> --}}
                 </div>
             </div>
         </div>

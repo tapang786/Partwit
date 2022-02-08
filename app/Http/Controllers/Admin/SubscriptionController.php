@@ -132,4 +132,13 @@ class SubscriptionController extends Controller
 
         return back();
     }
+
+
+    public function purchasedPlans()
+    {
+        // code...
+        $data['title'] = 'Purchased Subscription Plans';
+        $data['subscriptions'] = Subscription::all();
+        return view('admin.subscription.index', $data);
+    }
 }

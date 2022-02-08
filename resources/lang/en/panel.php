@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'site_title' => 'Admin Panel',
+    'site_title' => 'PartWit',
 ];

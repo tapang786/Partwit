@@ -19,12 +19,12 @@ class UsersController extends Controller
     {
         abort_if(Gate::denies('user_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        // $users = User::all();
-        $users = User::join('role_user', 'role_user.user_id', '=', 'users.id')
-                        ->where('role_user.role_id', '=', '2')
-                        // ->leftJoin('user_subscription','user_subscription.user_id','=','users.id')
-                        // ->select('users.*')
-                        ->get();
+        $users = User::with('roles')->whereHas("roles", function($q){ 
+                            $q->where('title', '=', 'User');
+                        })
+                ->leftJoin('user_subscription','user_subscription.user_id', '=', 'users.id')
+                ->select('users.*', 'user_subscription.title as plan')
+                ->get();
 
         $data['title'] = 'Users';
         $data['users'] = $users;

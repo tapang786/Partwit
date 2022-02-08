@@ -161,6 +161,10 @@ class ProductsController extends Controller
 
             $product =  Product::where('id',$pro_id)->first();
 
+            $product->view_count++;
+            $product->save();
+            unset($product['view_count']); 
+
             $serller_info = User::where('id', $product->seller_id)->first();
             $serller_info = $this->sellerProfile($serller_info);
 
@@ -248,6 +252,53 @@ class ProductsController extends Controller
                 'status' => true, 
                 'message' => 'Report Submited Successfully!',
                 // 'data' => $report
+            ]);
+
+        } catch (Exception $e){
+            return response()->json(['status' => false, 'message' => "Error: ".$e], 200);
+        }
+    }
+
+
+    public function delete(Request $request) {
+        // code...
+
+        try {
+
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'User not login!']);
+            }
+
+            $validator = \Validator::make($request->all() , [
+                'product_id' => 'required', 
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $product_delete =  Product::where('id',$product_id)->delete();
+
+            if($product_delete) {
+                $status = true;
+                $msg = 'Product deleted!';
+            } else {
+                $status = false;
+                $msg = 'Can\'t delete!';
+            }
+
+            return response()->json([
+                'status' => true, 
+                'message' => $msg
             ]);
 
         } catch (Exception $e){

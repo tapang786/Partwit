@@ -4,6 +4,7 @@
     <div class="logo">
         <a href="#" class="simple-text logo-normal">
             {{ trans('panel.site_title') }}
+            {{-- <img src="{{ asset('images/logo.png') }}" height="120" style="margin-bottom: 15px;"> --}}
         </a>
     </div>
 
@@ -91,6 +92,17 @@
                     <p>
                         <i class="fa fa-paper-plane"></i>
                         <span>{{ trans('cruds.subscription.title') }}</span>
+                    </p>
+                </a>
+            </li>
+            @endcan
+
+            @can('purchased_plans')
+            <li class="nav-item {{ request()->is('dashboard/purchased-plans') || request()->is('dashboard/purchased-plans/*') ? 'active' : '' }}">
+                <a href="{{ route("admin.purchased-plans") }}" class="nav-link" class="nav-link" >
+                    <p>
+                        <i class="fa fa-paper-plane"></i>
+                        <span>Purchased Plans</span>
                     </p>
                 </a>
             </li>
