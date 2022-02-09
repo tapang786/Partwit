@@ -11,6 +11,7 @@ use App\Categories;
 use App\User;
 use App\Attributes;
 use App\AttributeValue;
+use App\ProductAttribute;
 
 class ProductsController extends Controller
 {
@@ -57,7 +58,7 @@ class ProductsController extends Controller
     public function store(Request $request)
     {
         //
-        // dd($request);
+        // dd($request->attributes_value);
         if(isset($request->banner_image)) {
             $fileName = time().'_banner_'.$request->banner_image->getClientOriginalName();
             $request->banner_image->move(base_path('images/product'), $fileName);
@@ -82,22 +83,10 @@ class ProductsController extends Controller
             "status"        => $request->status,
         ];
 
-        // if(!isset($request->pro_id)) {
-        //     // 
-        //     $listed_on = \Carbon\Carbon::now();
-        //     $expires_on = \Carbon\Carbon::now()->addDays(15);
-
-        //     $args["listed_on"] = $listed_on;
-        //     $args["expires_on"] = $expires_on;
-        // }
-
         $product = Product::updateOrCreate(['id' => $request->pro_id], $args);
 
         $featured_image = "";
         $all_images = [];
-
-
-        
 
         if(!empty($request->featured_image) && $request->featured_image != null){
             // 
@@ -123,7 +112,27 @@ class ProductsController extends Controller
         }
 
             
+        $ProductAttribute = ProductAttribute::where('product_id', $product->id)->delete();
 
+        $attributes = $request->product_attributes;
+        $attributes_value = $request->attributes_value;
+        $category = Categories::where('id', $product->category_id)->first();
+
+        // dd($attributes_value);
+        foreach ($attributes as $key => $attribute) {
+            // code...
+            // $attr = Attributes::where('id', $attribute)->first();
+            $vl = AttributeValue::with('attributes')->where('id', $attribute)->first();
+            ProductAttribute::create([
+                'product_id' => $product->id,
+                'category_id' => $product->category_id,
+                'attribute_id' => $attribute,
+                'attribute_value_id' => $attributes_value[$attribute],
+                'category_title' => $category->title,
+                'attribute_title' => $vl->attributes->title,
+                'value_title' => $vl->title,
+            ]);
+        }
         // if(!empty($request->all_images) && $request->all_images != null){
         //     // 
         //     foreach ($request->all_images as $g_key => $g_value) {
@@ -193,8 +202,10 @@ class ProductsController extends Controller
         $data['categories'] = $categories;
         $data['attributes'] = $Attributes;
         $data['attributes_data'] = json_encode(Attributes::with('values')->where('cat_id', $product->category_id)->get()->toArray());
-        // dd(json_encode($attributes_data));
+        
 
+        $data['attributes_data'] = ProductAttribute::where('product_id', $id)->get()->toArray();
+        // dd($data);
         return view('admin.products.create', $data);
     }
 
@@ -251,7 +262,7 @@ class ProductsController extends Controller
                         <span class="remove_attribute" attr-id="'.$attribute->id.'"><i class="far fa-times-circle"></i></span>
                         <div class="form-group">
                             <label for="featured_image">'.$attribute->title.'</label>
-                            <select class="form-control attributes" name="attributes_value['.$attribute->id.']">
+                            <select class="form-control attributes" name="attributes_value['.$attribute->id.'][]">
                             <option value="">Select Value</option>';
                             foreach($attribute->values as $k => $value) {
                                 $html .='<option value="'.$value->id.'">'.$value->title.'</option>';

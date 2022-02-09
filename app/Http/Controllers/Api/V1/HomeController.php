@@ -2251,14 +2251,21 @@ class HomeController extends Controller
             extract($parameters);
 
             $data = [];
-            $attributes = Attributes::where('cat_id', $cat_id)->get();
+            $attributes = Attributes::with('values')->where('cat_id', $cat_id)->get();
             
             foreach ($attributes as $key => $attribute) {
                 // code...
-                $attributes_values = AttributeValue::where('cat_id', $cat_id)->where('attr_id', $attribute->id)->get();
-                $data[$attribute->title]['id'] = $attribute->id;
-                $data[$attribute->title]['title'] = $attribute->title;
-                $data[$attribute->title]['values'] = $attributes_values;
+                // $attributes_values = AttributeValue::where('cat_id', $cat_id)->where('attr_id', $attribute->id)->get();
+                // $data[$attribute->title]['id'] = $attribute->id;
+                // $data[$attribute->title]['title'] = $attribute->title;
+                // $data[$attribute->title]['values'] = $attributes_values;
+                
+                $data[] = $attribute;
+                $attribute[$attribute->title] = $attribute->values;
+                unset($attribute->values);
+                unset($attribute->created_at);
+                unset($attribute->updated_at);
+                unset($attribute->deleted_at);
             }
 
             return response()->json([
