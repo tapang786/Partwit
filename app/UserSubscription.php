@@ -31,4 +31,15 @@ class UserSubscription extends Model
         'updated_at',
         'deleted_at',
     ];
+
+    // public function user()
+    // {
+    //     return $this->hasOne(User::class, 'user_id');
+    // }
+
+    // public function subscription()
+    // {
+    //     return $this->hasOne(Subscription::class, 'subscription_id');
+    // }
+    
 }

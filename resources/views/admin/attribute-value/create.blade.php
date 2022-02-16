@@ -16,18 +16,26 @@
                 
                 <label for="name">Attribute Value*</label>
                 <input type="text" id="name" name="title" class="form-control" value="{{isset($attributeValue) ? $attributeValue->title : ''}}" required>
-                {{-- <small>Add Multiple Values separated by a comma.</small> --}}
             </div>
             <br>
-            {{-- <div class="form-group {{ $errors->has('attribute') ? 'has-error' : '' }}">
-                <label for="attribute">Attribute *</label>
-                <select class="form-control select2" name="attribute">
-                    <option value="0">Select</option>
-                    @foreach($Attributes as $val)
-                    <option value="{{$val->id}}">{{$val->title}}</option>
-                    @endforeach
-                </select>
-            </div> --}}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group " style="    margin: -10px;">
+                        <label for="attribute">Type *</label>
+                        <select class="form-control" name="type" id="attribute">
+                            <option value="">Select Type</option>
+                            <option value="text" {{(isset($attributeValue) && $attributeValue->type == 'text')?'selected':''}}>Text</option>
+                            <option value="color" {{(isset($attributeValue) && $attributeValue->type == 'color')?'selected':''}}>Color</option> 
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6 color" >
+                    <div class="form-group">
+                        <label for="color">Color Code*</label>
+                        <input type="color" id="color" class="form-control" value="{{isset($attributeValue->color) ? $attributeValue->color : ''}}" name="color" style="height: 55px;">
+                    </div>
+                </div>
+            </div>
             <br>
             
             <div>
@@ -41,3 +49,30 @@
     </div>
 </div>
 @endsection
+
+@section('scripts')
+<style type="text/css">
+    .color {
+        display: {{isset($attributeValue->color) ? 'block' : 'none'}};
+    }
+</style>
+<script>
+    $(document).ready(function() {
+
+        $(document).on('change', '#attribute', function(e){
+            // 
+            e.preventDefault();
+       
+            var category = $(this).val();
+       
+            if(category == 'text') {
+                $('.color').hide();
+            } else {
+                $('.color').show();
+            }
+        });
+    });
+    
+</script>
+@endsection
+

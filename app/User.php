@@ -13,7 +13,7 @@ use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use SoftDeletes, Notifiable, HasApiTokens;
+    use Notifiable, HasApiTokens;
 
     public $table = 'users';
 
@@ -81,7 +81,15 @@ class User extends Authenticatable
     public function roles()
     {
         return $this->belongsToMany(Role::class);
+    }
 
+    public function plan()
+    {
+        return $this->belongsTo(UserSubscription::class, 'subscription_plan', 'subscription_id');
+    }
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class, 'subscription_plan');
     }
 
     public function AauthAcessToken(){

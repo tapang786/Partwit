@@ -5,9 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Subscription;
+use App\PlanPayments;
 use Gate;
 use Symfony\Component\HttpFoundation\Response;
-
+use DB;
 
 class SubscriptionController extends Controller
 {
@@ -69,6 +70,7 @@ class SubscriptionController extends Controller
                 'title' => $request->title, 
                 'type' => $request->type, 
                 'number' => $request->number, 
+                'product_limit' => $request->product_limit, 
                 'description' => $request->description?$request->description:'', 
                 'price' => $request->price, 
                 'subscription_type' => $request->subscription_type, 
@@ -138,7 +140,7 @@ class SubscriptionController extends Controller
     {
         // code...
         $data['title'] = 'Purchased Subscription Plans';
-        $data['subscriptions'] = Subscription::all();
-        return view('admin.subscription.index', $data);
+        $data['plan_payments'] = PlanPayments::with('user', 'subscription')->get();
+        return view('admin.subscription.purchased_index', $data);
     }
 }

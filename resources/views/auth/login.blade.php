@@ -22,7 +22,7 @@
                     <div class="card card-login mb-3">
                         <div class="card-header card-header-primary text-center">
                             <h4 class="card-title">
-                                <strong>Sign in to start your session</strong>
+                                <strong>Login to PartWit</strong>
                             </h4>
                         </div>
                         <div class="card-body login-card-body">

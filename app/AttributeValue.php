@@ -15,6 +15,8 @@ class AttributeValue extends Model
         'attr_id',
         'cat_id',
         'title',
+        'type',
+        'color',
         'created_at',
         'updated_at'
     ];

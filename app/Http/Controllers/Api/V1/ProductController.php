@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -25,12 +25,16 @@ class ProductController extends Controller
 
     public function create(Request $req){
 
-        die('sdf');
-
         $validator = \Validator::make($request->all() , [
             // 'name' => 'required',
-            'email' => 'required|email|unique:users,email', 
-            'password' => 'required|confirmed|string|min:6'
+            'name' => 'required', 
+            'seller_id' => 'required',
+            'short_desc' => 'required',
+            'description' => 'required',
+            'price' => 'required',
+            'category_id' => 'required',
+            'featured_image' => 'required',
+            'all_images' => 'required'
         ]);
 
         if ($validator->fails()) {

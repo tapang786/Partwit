@@ -51,6 +51,8 @@ class AttributeValueController extends Controller
             'attr_id' => $request->attribute,
             'cat_id' => $request->category,
             'title'     => $request->title,
+            'type'  => isset($request->type)?$request->type:'text',
+            'color' => isset($request->color)?$request->color:'',
         ]);
 
         return redirect()->route('admin.attribute-value.index', ['attr' => $request->attribute, 'cat' => $request->category]);

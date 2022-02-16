@@ -118,13 +118,33 @@
             
             <div class="form-group {{ $errors->has('attribute') ? 'has-error' : '' }}" style="display: {{isset($product->attributes)?'block':'block' }};">
                 <label for="attribute">Attributes*</label>
-                <select class="js-example-basic-multiple form-control attributes" name="attributes[]" multiple="multiple">
+                <select class="js-example-basic-multiple form-control attributes" name="product_attributes[]" multiple="multiple">
                 @foreach($attributes as $k => $attribute)
-                    <option value="{{$attribute->id}}">{{$attribute->title}}</option>
+                    <option value="{{$attribute->id}}" {{ (array_key_exists("attr_".$attribute->id,$product_attributes))?'selected':''}}>{{$attribute->title}}</option>
                 @endforeach
                 </select>
                 <button type="button" class="btn btn-sm btn-primary" id="select_values">Select Values</button>
                 <div class="row attribute_list">
+
+                @if(count($product_attributes) > 0)
+                    @foreach($attributes as $k => $attribute)
+                        @if(array_key_exists("attr_".$attribute->id,$product_attributes))
+                        <div class="col-md-4" id="{{$attribute->id}}">
+                            {{-- <span class="remove_attribute" attr-id="{{$attribute->id}}"><i class="far fa-times-circle"></i></span> --}}
+                            <div class="form-group">
+                                <label for="{{$attribute->title}}">{{$attribute->title}}</label>
+                                <select class="form-control attributes {{$attribute->title}}" name="attributes_value[{{$attribute->id}}][]">
+                                <option value="">Select Value</option>';
+                                @foreach($attribute->values as $k => $value) 
+                                    <option value="{{$value->id}}" {{($value->id == $product_attributes['attr_'.$attribute->id]['attribute_value_id'])?'selected':''}}>{{$value->title}}</option>
+                                @endforeach
+                                </select>
+                                
+                            </div>
+                        </div>
+                        @endif
+                    @endforeach
+                @endif
                 </div>
             </div>
 
@@ -132,8 +152,8 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group {{ $errors->has('featured_image') ? 'has-error' : '' }}">
-                        <label for="featured_image">Image*</label>
-                        <input type="file" id="featured_image" name="featured_image" class="form-control" value="" {{ isset($product->featured_image) ? '' : 'required' }} style="opacity: 1; position: relative; z-index: 999;">
+                        <label for="featured_image">Images*</label>
+                        <input type="file" id="featured_image" name="featured_image[]" class="form-control" value="" {{ isset($product->featured_image) ? '' : 'required' }} style="opacity: 1; position: relative; z-index: 999;" multiple>
                         @if($errors->has('featured_image'))
                             <p class="help-block">
                                 {{ $errors->first('featured_image') }}
@@ -142,10 +162,13 @@
                         <p class="helper-block">
                             {{ trans('cruds.advertisement.fields.title_helper') }}
                         </p>
-                        @if(isset($product->featured_image)) 
+                        {{-- @if(isset($product->featured_image)) 
                             <img src="{{ url($product->featured_image)}}" width="220">
-                        @endif
+                        @endif --}}
+
                         <input type="hidden" name="featured_image_old" value="{{ isset($product->featured_image) ? $product->featured_image : '' }}">
+
+
                     </div>
                 </div>
 
@@ -171,7 +194,20 @@
                     </div>
                 </div>
             </div>
-                        
+            <div class="row">
+                <div class="col-md-12 gallery_images">
+                    @if($product->all_images)
+                        @foreach(json_decode($product->all_images) as $img_key => $img)
+                            <img src="{{ url($img)}}">
+                        @endforeach
+                        {{-- @foreach(json_decode($product->all_images) as $img_key => $img)
+                            <img src="{{ url($img)}}">
+                        @endforeach --}}
+                    @endif
+                </div>
+            </div>
+
+             
 
             <div>
                 <input type="hidden" value="{{ isset($product->id)? $product->id: ''}}" name="pro_id">
@@ -198,13 +234,18 @@
         cursor: pointer;
         z-index: 9999;
     }
+
+    .gallery_images > img {
+        border: 1px solid;
+        height: 100px;
+    }
 </style>
 @endsection
 
 @section('scripts')
 <script src="https://cdn.ckeditor.com/4.17.1/standard/ckeditor.js"></script>
 <script>
-    var attributes_data = jQuery.parseJSON( '{!!$attributes_data!!}');
+    // var attributes_data = jQuery.parseJSON( '');
     // CKEDITOR.replace( 'description' );
     CKEDITOR.replace('description', {
         filebrowserUploadUrl: "{{route('ckeditor.upload', ['_token' => csrf_token() ])}}",
@@ -222,11 +263,15 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
+        $(".js-example-basic-multiple").on("select2:select", function (e) { 
+            var select_val = $(e.currentTarget);
+            console.log(select_val)
+        });
    
         $("#select_values").click(function(e){
       
             e.preventDefault();
-       
             var attributes = $(".attributes").val();
             // alert(attributes)
        

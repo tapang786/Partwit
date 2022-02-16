@@ -31,4 +31,5 @@ class Subscription extends Model
         'updated_at',
         'deleted_at',
     ];
+
 }

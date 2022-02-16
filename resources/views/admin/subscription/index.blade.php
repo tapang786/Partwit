@@ -30,13 +30,13 @@
                         <th>
                             {{ trans('cruds.subscription.fields.title') }}
                         </th>
+                        <th>
+                            Product Limit
+                        </th>
+                        <th>
+                            {{ trans('cruds.subscription.fields.price') }}
+                        </th>
                         <!-- <th>
-                            {{ trans('cruds.subscription.fields.status') }}
-                        </th>
-                        <th>
-                            {{ trans('cruds.subscription.fields.start_at') }}
-                        </th>
-                        <th>
                             {{ trans('cruds.subscription.fields.end_at') }}
                         </th> -->
                         <th>
@@ -56,13 +56,13 @@
                             <td>
                                 {{ $subscription->title ?? '' }}
                             </td>
-                            <!-- <td>
-                                {{ $subscription->status ? 'Acitve' : 'In active' }}
+                            <td>
+                                {{ $subscription->product_limit ?$subscription->product_limit : '-' }}
                             </td>
                             <td>
-                                {{ \Carbon\Carbon::parse($subscription->start_at)->format('d/m/Y')}}
+                                {{ $subscription->price }}
                             </td>
-                            <td>
+                           <!--  <td>
                                 {{ \Carbon\Carbon::parse($subscription->end_at)->format('d/m/Y')}}
                             </td> -->
                             <td>

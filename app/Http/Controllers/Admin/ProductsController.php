@@ -85,54 +85,92 @@ class ProductsController extends Controller
 
         $product = Product::updateOrCreate(['id' => $request->pro_id], $args);
 
-        $featured_image = "";
-        $all_images = [];
+        // $featured_image = "";
+        // $all_images = [];
 
-        if(!empty($request->featured_image) && $request->featured_image != null){
-            // 
-            if($request->hasFile('featured_image')) {
-                // 
-                $originName = $request->file('featured_image')->getClientOriginalName();
-                $featured_image = time().'-'.$originName;  
-                $request->featured_image->move(base_path('images/product/'), $featured_image);
+        // if(!empty($request->featured_image) && $request->featured_image != null){
+        //     // 
+        //     if($request->hasFile('featured_image')) {
+        //         // 
+        //         $originName = $request->file('featured_image')->getClientOriginalName();
+        //         $featured_image = time().'-'.$originName;  
+        //         $request->featured_image->move(base_path('images/product/'), $featured_image);
 
-                $featured_image = 'images/product/'.$featured_image;
-                // $featured_image = $fileName.'_'.time().'.'.$extension;
+        //         $featured_image = 'images/product/'.$featured_image;
+        //         // $featured_image = $fileName.'_'.time().'.'.$extension;
             
-                // $request->file('featured_image')->move(base_path('images/product/'), $fileName);
+        //         // $request->file('featured_image')->move(base_path('images/product/'), $fileName);
                 
-            }
+        //     }
 
-            if(file_exists(base_path($product->featured_image)) && isset($request->featured_image)) { 
-                unlink(base_path($product->featured_image));
-            }
-        } else {
-            // 
-            $featured_image = $product->featured_image;
-        }
+        //     if(file_exists(base_path($product->featured_image)) && isset($request->featured_image)) { 
+        //         unlink(base_path($product->featured_image));
+        //     }
+        // } else {
+        //     // 
+        //     $featured_image = $product->featured_image;
+        // }
 
             
         $ProductAttribute = ProductAttribute::where('product_id', $product->id)->delete();
 
-        $attributes = $request->product_attributes;
+        $product_attributes = $request->product_attributes;
         $attributes_value = $request->attributes_value;
         $category = Categories::where('id', $product->category_id)->first();
-
-        // dd($attributes_value);
-        foreach ($attributes as $key => $attribute) {
-            // code...
-            // $attr = Attributes::where('id', $attribute)->first();
-            $vl = AttributeValue::with('attributes')->where('id', $attribute)->first();
-            ProductAttribute::create([
-                'product_id' => $product->id,
-                'category_id' => $product->category_id,
-                'attribute_id' => $attribute,
-                'attribute_value_id' => $attributes_value[$attribute],
-                'category_title' => $category->title,
-                'attribute_title' => $vl->attributes->title,
-                'value_title' => $vl->title,
-            ]);
+        if(isset($request->product_attributes)) {
+            // 
+            foreach ($product_attributes as $key => $attribute) {
+                // code...
+                // $attr = Attributes::where('id', $attribute)->first();
+                $vl = AttributeValue::with('attributes')->where('id', $attributes_value[$attribute])->first();
+                // dd($attributes_value[$attribute][$key]);
+                ProductAttribute::create([
+                    'product_id' => $product->id,
+                    'category_id' => $product->category_id,
+                    'attribute_id' => $attribute,
+                    'attribute_value_id' => $attributes_value[$attribute][0],
+                    'category_title' => $category->title,
+                    'attribute_title' => $vl->attributes->title,
+                    'value_title' => $vl->title,
+                ]);
+            }
         }
+
+        if($request->hasfile('featured_image'))
+        {   
+            $all_image = [];
+            foreach($request->file('featured_image') as $key => $file)
+            {
+                $name = uniqid()."_".$key. 'gallery_image.' . $file->extension();
+                $file->move(base_path().'/images/product/', $name);  
+                $all_image[] = "images/product/".$name;  
+            }
+
+            $all_image = json_encode($all_image);
+
+            if($product->all_images != "" || $product->all_images != null) {
+                // 
+                $all_images_old = json_decode($product->all_images);
+                foreach ($all_images_old as $image) {
+                    // code...
+                    if(file_exists(base_path($image)) && isset($image)) { 
+                        unlink(base_path($image));
+                    }
+                }
+            }
+            
+        } else {
+            // 
+            $all_image = $product->all_images;
+        }
+
+        $featured_image = (count(json_decode($all_image)) > 0)?json_decode($all_image)[0]:$product->featured_image;
+
+        Product::where('id','=',$product->id)->update([
+            'featured_image' => $featured_image,
+            'all_images' => $all_image
+        ]);
+
         // if(!empty($request->all_images) && $request->all_images != null){
         //     // 
         //     foreach ($request->all_images as $g_key => $g_value) {
@@ -157,11 +195,6 @@ class ProductsController extends Controller
         //     // 
         //     $all_image = $product->all_images;
         // }
-
-        Product::where('id','=',$product->id)->update([
-            'featured_image' => $featured_image,
-            // 'all_images' => $all_image
-        ]);
 
         // return response()->json([
         //     'status' => true, 
@@ -201,10 +234,15 @@ class ProductsController extends Controller
         $data['product'] = $product;
         $data['categories'] = $categories;
         $data['attributes'] = $Attributes;
-        $data['attributes_data'] = json_encode(Attributes::with('values')->where('cat_id', $product->category_id)->get()->toArray());
-        
+        // $data['attributes_data'] = json_encode(Attributes::with('values')->where('cat_id', $product->category_id)->get()->toArray());
 
-        $data['attributes_data'] = ProductAttribute::where('product_id', $id)->get()->toArray();
+        $data['product_attributes'] = [];
+        $Attributes = ProductAttribute::where('product_id', $id)->get()->toArray();
+        foreach($Attributes as $k => $Attribute) {
+            $data['product_attributes']['attr_'.$Attribute['attribute_id']] =  $Attribute;
+        }
+        // $data['product_attributes'] = $Attributes;
+
         // dd($data);
         return view('admin.products.create', $data);
     }
@@ -254,12 +292,13 @@ class ProductsController extends Controller
     public function getAttributesValues(Request $request)
     {
         //
+
         $attributes = Attributes::with('values')->whereIn('id', $request->attribute_list)->get();
         $html = '';
         foreach ($attributes as $ky => $attribute) {
             // code...
             $html .='<div class="col-md-4" id="'.$attribute->id.'">
-                        <span class="remove_attribute" attr-id="'.$attribute->id.'"><i class="far fa-times-circle"></i></span>
+                        <!-- <span class="remove_attribute" attr-id="'.$attribute->id.'"><i class="far fa-times-circle"></i></span> -->
                         <div class="form-group">
                             <label for="featured_image">'.$attribute->title.'</label>
                             <select class="form-control attributes" name="attributes_value['.$attribute->id.'][]">

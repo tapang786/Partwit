@@ -25,7 +25,7 @@
             </div>
 
             <div class="form-group {{ $errors->has('price') ? 'has-error' : '' }}">
-                <label for="price">{{ trans('cruds.subscription.fields.price') }}*</label>
+                <label for="subscription_type">Plan Type*</label>
                 <?php $subscription_types = ['free' => 'Free', 'featured' => 'Featured', 'premium' => 'Premium']; ?>
                 <select name="subscription_type" class="form-control" required placeholder="Subscription Type">
                     <option>Select Type</option>
@@ -39,16 +39,34 @@
             </div>
 
             <div class="form-group {{ $errors->has('price') ? 'has-error' : '' }}">
-                <label for="price">{{ trans('cruds.subscription.fields.price') }}*</label>
-                <input type="text" id="price" name="price" class="form-control" value="{{ old('price', isset($subscription) ? $subscription->price : '') }}">
-                @if($errors->has('price'))
-                    <p class="help-block">
-                        {{ $errors->first('price') }}
-                    </p>
-                @endif
-                <p class="helper-block">
-                    {{ trans('cruds.subscription.fields.title_helper') }}
-                </p>
+                <div class="row">
+                    <div class="col-6 col-md-6">
+                        <label for="price">{{ trans('cruds.subscription.fields.price') }}*</label>
+                        <input type="text" id="price" name="price" class="form-control" value="{{ old('price', isset($subscription) ? $subscription->price : '') }}">
+                        @if($errors->has('price'))
+                            <p class="help-block">
+                                {{ $errors->first('price') }}
+                            </p>
+                        @endif
+                        <p class="helper-block">
+                            {{ trans('cruds.subscription.fields.title_helper') }}
+                        </p>
+                    </div>
+                    <div class="col-6 col-md-6">
+                        <label for="product_limit">Product Limit*</label>
+                        <input type="text" id="product_limit" name="product_limit" class="form-control" value="{{ old('product_limit', isset($subscription) ? $subscription->product_limit : '') }}">
+                        @if($errors->has('product_limit'))
+                            <p class="help-block">
+                                {{ $errors->first('product_limit') }}
+                            </p>
+                        @endif
+                        <p class="helper-block">
+                            {{ trans('cruds.subscription.fields.title_helper') }}
+                        </p>
+                    </div>
+                </div>
+
+                
             </div>
 
             <div class="form-group {{ $errors->has('type') ? 'has-error' : '' }}">

@@ -81,6 +81,9 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     //Product Add / Edit
     Route::post('product-add', [ProductsController::class, 'create']); 
 
+    // Edit Product
+    Route::post('edit-product', [ProductsController::class, 'editProduct']);
+
     // Show Product
     Route::post('product-show', [ProductsController::class, 'show']); 
 
@@ -144,5 +147,12 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
 
     // Attributes List
     Route::post('attributes-list', [HomeController::class, 'attributesList']);
+
+
+    // Filter Products API
+    Route::post('filter-products', [ProductsController::class, 'filterProduct']);
+
+    // filters
+    Route::post('filters', [ProductsController::class, 'filtersData']);
 
 });

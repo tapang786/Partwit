@@ -17,22 +17,15 @@
                
             </div>
             
-            {{-- <div class="form-group {{ $errors->has('name') ? 'has-error' : '' }}">
+            <div class="form-group {{ $errors->has('name') ? 'has-error' : '' }}">
                 
-                <label for="name">Category*</label>
-                @if(!isset($category->id)) 
-                    <select class="form-control select2" name="category">
-                        <option value="0">Select</option>
-                        @foreach($parent_cat as $val)
-                        <option value="{{$val->id}}" {{isset($category) && ($category->id == $val->id) ? 'selected' : ''}}>{{$val->title}}</option>
-                        @endforeach
+                <label for="type">Type*</label>
+                    <select class="form-control" name="type" id="attribute">
+                        <option value="">Select Type</option>
+                        <option value="text" {{(isset($Attributes) && $Attributes->type == 'text')?'selected':''}}>Text</option>
+                        <option value="color" {{(isset($Attributes) && $Attributes->type == 'color')?'selected':''}}>Color</option> 
                     </select>
-                @else
-                    <select class="form-control select2" name="category">
-                        <option value="{{$category->id}}">{{$category->title}}</option>
-                    </select>
-                @endif
-            </div> --}}
+            </div>
             <br>
             <div>
                 <input type="hidden" name="attr_id" value="{{isset($Attributes) ? $Attributes->id : ''}}" >

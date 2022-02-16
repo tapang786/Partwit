@@ -62,6 +62,7 @@ class AttributeController extends Controller
         $Attributes = Attributes::updateOrCreate(['id'=>$request->attr_id],[
             'title'     => $request->title,
             'cat_id'     => $request->category,
+            'type'     => $request->type,
         ]);
 
         return redirect()->route('admin.attributes.index', ['cat' => $request->category]);

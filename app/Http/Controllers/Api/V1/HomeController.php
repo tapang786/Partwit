@@ -1455,7 +1455,8 @@ class HomeController extends Controller
             foreach ($categories as $ck => $cv) {
                 // code...
                 $products = Product::where('category_id', $cv->id)
-                            // ->whereDate('expires_on', '>', Carbon::now())
+                            ->whereDate('expires_on', '>', Carbon::now())
+                            ->where('status', '1')
                             ->get();
                 $product_lists = [];
 
@@ -1516,7 +1517,8 @@ class HomeController extends Controller
             extract($parameters);
 
             $products = Product::where('category_id', $cat_id)
-                        // ->whereDate('expires_on', '>', Carbon::now())
+                        ->whereDate('expires_on', '>', Carbon::now())
+                        ->where('status', '1')
                         ->get();
             $product_lists = [];
 
@@ -1947,8 +1949,9 @@ class HomeController extends Controller
             }
             $seller['rating'] = $rating; 
             $seller['profile_pic'] = url($seller->profile_pic); 
-            $products = Product::where('seller_id', $user->id)
-                            // ->whereDate('expires_on', '>', Carbon::now())
+            $products = Product::where('seller_id', $seller->id)
+                            ->whereDate('expires_on', '>', Carbon::now())
+                            ->where('status', '1')
                             ->orderBy('created_at', 'DESC')
                             ->get();
 
@@ -2259,11 +2262,17 @@ class HomeController extends Controller
                 // $data[$attribute->title]['id'] = $attribute->id;
                 // $data[$attribute->title]['title'] = $attribute->title;
                 // $data[$attribute->title]['values'] = $attributes_values;
-                
+
                 $data[] = $attribute;
+                foreach ($attribute->values as $ky => $value) {
+                    // code...
+                    unset($value->type);
+                    unset($value->color);
+                }
                 $attribute[$attribute->title] = $attribute->values;
                 unset($attribute->values);
                 unset($attribute->created_at);
+                unset($attribute->type);
                 unset($attribute->updated_at);
                 unset($attribute->deleted_at);
             }
