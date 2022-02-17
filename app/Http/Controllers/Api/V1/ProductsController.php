@@ -413,6 +413,7 @@ class ProductsController extends Controller
             $parameters = $request->all();
             extract($parameters);
 
+
             $categories = Categories::all();
             $product = Product::where('id', $product_id)->first();
 
@@ -421,7 +422,41 @@ class ProductsController extends Controller
                     ->json(['status' => false, 'message' => 'Product not found!'], 200);
             }
 
-            $Attributes = Attributes::with('values')->where('cat_id', $product->category_id)->get();
+            $attributes = Attributes::with('values')->where('cat_id', $product->category_id)->get();
+
+            $product_attributes = ProductAttribute::where('product_id', $product->id)->pluck('attribute_value_id', 'attribute_id')->toArray();
+            
+
+            foreach($attributes as $k => $attribute) {
+                // 
+                if (array_key_exists($attribute->id, $product_attributes)) {
+                    $attribute['selected'] = true;
+                } else {
+                    $attribute['selected'] = false;
+                }
+
+                unset($attribute->cat_id);
+                unset($attribute->created_at);
+                unset($attribute->updated_at);
+                unset($attribute->deleted_at);
+
+                foreach($attribute->values as $ak => $attribute_value) {
+                    if (in_array($attribute_value->id, $product_attributes))
+                    { 
+                        $attribute_value['selected'] = true;
+                    } else {
+                        $attribute_value['selected'] = false;
+                    }
+                    unset($attribute_value->created_at);
+                    unset($attribute_value->updated_at);
+                    unset($attribute_value->deleted_at);
+                    unset($attribute_value->attr_id);
+                    unset($attribute_value->cat_id);
+                }
+            }
+
+
+            // $Attributes = Attributes::with('values')->where('cat_id', $product->category_id)->get();
 
             $product['seller'] = User::select('name')->where('id', $product->seller_id)->first();
             if(isset($product->all_images)) {
@@ -435,12 +470,14 @@ class ProductsController extends Controller
             if(isset($product->featured_image)) {
                 $product['featured_image'] = url($product->featured_image);
             }
-            $product_attributes = [];
-            $Attributes = ProductAttribute::where('product_id', $product_id)->get()->toArray();
-            foreach($Attributes as $k => $Attribute) {
-                $product_attributes[$Attribute['attribute_id']] =  $Attribute;
-            }
-            $product['product_attributes'] = $product_attributes; 
+
+            // $product_attributes = [];
+            // $Attributes = ProductAttribute::where('product_id', $product_id)->get()->toArray();
+            // foreach($Attributes as $k => $Attribute) {
+            //     $product_attributes[$Attribute['attribute_id']] =  $Attribute;
+            // }
+
+            $product['product_attributes'] = $attributes; 
 
             return response()->json([
                 'status' => true, 
