@@ -28,6 +28,7 @@ use Carbon\Carbon;
 use App\Subscription;
 use App\Reason;
 use App\Posts;
+use App\Chat;
 use App\Notifications;
 use App\UserCard;
 use App\Payments;
@@ -2290,5 +2291,82 @@ class HomeController extends Controller
         }
     }
 
+
+    public function addChat(Request $request) {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $validator = \Validator::make($request->all() , [
+                'chat_with' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                $response = $validator->errors();
+                return response()
+                    ->json(['status' => false, 'message' => implode("", $validator->errors()
+                    ->all()) ], 200);
+            }
+
+            $parameters = $request->all();
+            extract($parameters);
+
+            $chat = Chat::firstOrNew(array('user_id' => $user->id,'chat_with' => $chat_with))->save();
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Chat user save!'
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
+
+
+    public function ChatList($value='') {
+        // code...
+        try {
+            // 
+            if (Auth::guard('api')->check()) {
+                $user = Auth::guard('api')->user();
+            }
+            if(!$user) {
+                return response()->json(['status' => false, 'message' => 'login token error!']);
+            }
+
+            $chat_with = Chat::where('user_id', $user->id)->pluck('chat_with')->toArray();
+            $chat_to = Chat::where('chat_with', $user->id)->pluck('user_id')->toArray();
+
+            $chats = array_unique(array_merge($chat_with,$chat_to));
+
+            // $users = [];
+            $users = User::select('name', 'profile_pic', )->whereIn('id', $chats)->get();
+            
+            foreach ($users as $key => $user) {
+                // code...
+                $user['profile_pic'] = ($user->profile_pic != null)?url($user->profile_pic):'';
+            }
+
+            return response()->json([
+                'status' => true, 
+                'message' => 'Chat list!', 
+                'data' => $users
+            ]);
+
+        } catch(Exception $e) {
+            $response['status'] = false;
+            $response['message'] = "Error: ".$e;
+            return response()->json($response);
+        }
+    }
 
 }

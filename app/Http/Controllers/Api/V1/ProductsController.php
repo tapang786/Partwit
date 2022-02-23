@@ -42,31 +42,33 @@ class ProductsController extends Controller
 
         $product_attributes = json_decode($product_attributes);
         $attributes_value = json_decode($attributes_value);
-        // $all_images = json_decode($all_images);
-
+        // 
+        $deleted = json_decode($deleted);
         try {
 
-            $current_mpc = Product::whereMonth('created_at', Carbon::now()->month)
-                            ->where('seller_id', $seller_id)
-                            ->get()
-                            ->count();
+            if(!isset($request->pro_id)) {
+                $current_mpc = Product::whereMonth('created_at', Carbon::now()->month)
+                                ->where('seller_id', $seller_id)
+                                ->get()
+                                ->count();
 
-            $user = User::with('plan', 'subscription')->where('id', $seller_id)->first();
+                $user = User::with('plan', 'subscription')->where('id', $seller_id)->first();
 
-            if(isset($user->plan->end_date)) {
-                // 
-                $date1 = Carbon::createFromFormat('Y-m-d H:i:s', $user->plan->end_date);
-                $date2 = Carbon::createFromFormat('Y-m-d H:i:s', Carbon::now());
-                $result = $date1->gt($date2);
+                if(isset($user->plan->end_date)) {
+                    // 
+                    $date1 = Carbon::createFromFormat('Y-m-d H:i:s', $user->plan->end_date);
+                    $date2 = Carbon::createFromFormat('Y-m-d H:i:s', Carbon::now());
+                    $result = $date1->gt($date2);
 
-                if($date1->lt($date2)) {
-                    return response()->json(['status' => false, 'message' => 'Your Subscription is expire!']);
-                } 
-            }
+                    if($date1->lt($date2)) {
+                        return response()->json(['status' => false, 'message' => 'Your Subscription is expire!']);
+                    } 
+                }
 
-            $product_limit = isset($user->subscription->product_limit)?$user->subscription->product_limit:3;
-            if($current_mpc >= $product_limit) {
-                return response()->json(['status' => false, 'message' => 'You cant add more in this month!']);
+                $product_limit = isset($user->subscription->product_limit)?$user->subscription->product_limit:3;
+                if($current_mpc >= $product_limit) {
+                    return response()->json(['status' => false, 'message' => 'You cant add more in this month!']);
+                }
             }
 
             $validator = \Validator::make($request->all() , [
@@ -78,7 +80,7 @@ class ProductsController extends Controller
                 'product_attributes'    => 'required',
                 'attributes_value'      => 'required',
                 // 'featured_image'        => 'required',
-                'all_images'            => 'required'
+                // 'all_images'            => 'required'
             ]);
 
 
@@ -89,7 +91,7 @@ class ProductsController extends Controller
                     ->all()) ], 200);
             }
 
-            $status = true;
+            
 
             $args = [
                 "name"          => $name,
@@ -98,16 +100,17 @@ class ProductsController extends Controller
                 "description"   => $description,
                 "price"         => $price,
                 "category_id"   => $category_id,
-                "status"        => $status,
             ];
 
             if(!isset($request->pro_id)) {
                 // 
+                $status = true;
                 $listed_on = \Carbon\Carbon::now();
                 $expires_on = \Carbon\Carbon::now()->addDays(15);
 
                 $args["listed_on"] = $listed_on;
                 $args["expires_on"] = $expires_on;
+                $args["status"] = $status;
             }
 
             $product = Product::updateOrCreate(['id' => $request->pro_id], $args);
@@ -135,17 +138,75 @@ class ProductsController extends Controller
             }
             // 
 
-            $featured_image = "";
-            // $gallery_images = [];            
+            $gallery_images = [];            
 
-            // if(!empty($all_images) && $all_images != null){
+            if(!empty($all_images) && $all_images != null){
+                // 
+                $all_images = json_decode($all_images);
+
+                foreach ($all_images as $g_key => $g_value) {
+                    // 
+                    $gallery_images[] = $this->createImage($g_value);
+                }  
+            }
+            // else {
             //     // 
-            //     foreach ($all_images as $g_key => $g_value) {
-            //         // 
-            //         $gallery_images[] = $this->createImage($g_value);
+            //     $gallery_images = $product->all_images;
+            // }
+
+            if($product->all_images != "" || $product->all_images != null) {
+                // 
+                if(isset($deleted)) {
+                    // 
+
+                    $all_images_old = json_decode($product->all_images);
+                    foreach ($all_images_old as $key => $image) {
+                        // code...
+
+                        if(in_array($key, $deleted)) {
+                            // 
+                            unset($all_images_old[$key]);
+
+                            if(file_exists(base_path($image)) && isset($image)) { 
+                                unlink(base_path($image));
+                            }
+                        }
+                    }
+                } else {
+                    // 
+                    $all_images_old = json_decode($product->all_images);
+                }
+            } 
+
+            $gallery_images = array_merge($all_images_old, $gallery_images);
+
+            $gallery_images = json_encode($gallery_images);
+
+
+
+            if(count(json_decode($gallery_images)) > 0){
+
+                $featured_image = "";
+                $featured_image = (count(json_decode($gallery_images)) > 0)?json_decode($gallery_images)[0]:$product->featured_image;
+
+                Product::where('id','=',$product->id)->update([
+                    'featured_image' => $featured_image,
+                    'all_images' => $gallery_images
+                ]);
+            }
+
+
+            // if($request->hasfile('all_images'))
+            // {   
+            //     $gallery_images = [];
+            //     foreach($request->file('all_images') as $key => $file)
+            //     {
+            //         $name = uniqid()."_".$key. 'gallery_image.' . $file->extension();
+            //         $file->move(base_path().'/images/product/', $name);  
+            //         $gallery_images[] = "images/product/".$name;  
             //     }
 
-            //     $all_gallery_image = json_encode($gallery_images);
+            //     $gallery_images = json_encode($gallery_images);
 
             //     if($product->all_images != "" || $product->all_images != null) {
             //         // 
@@ -157,49 +218,14 @@ class ProductsController extends Controller
             //             }
             //         }
             //     }
-
+                
             // } else {
             //     // 
-            //     $all_gallery_image = $product->all_images;
+            //     $gallery_images = $product->all_images;
             // }
 
 
-            if($request->hasfile('all_images'))
-            {   
-                $gallery_images = [];
-                foreach($request->file('all_images') as $key => $file)
-                {
-                    $name = uniqid()."_".$key. 'gallery_image.' . $file->extension();
-                    $file->move(base_path().'/images/product/', $name);  
-                    $gallery_images[] = "images/product/".$name;  
-                }
-
-                $gallery_images = json_encode($gallery_images);
-
-                if($product->all_images != "" || $product->all_images != null) {
-                    // 
-                    $all_images_old = json_decode($product->all_images);
-                    foreach ($all_images_old as $image) {
-                        // code...
-                        if(file_exists(base_path($image)) && isset($image)) { 
-                            unlink(base_path($image));
-                        }
-                    }
-                }
-                
-            } else {
-                // 
-                $gallery_images = $product->all_images;
-            }
-
-
-
-            $featured_image = (count(json_decode($gallery_images)) > 0)?json_decode($gallery_images)[0]:$product->featured_image;
-
-            Product::where('id','=',$product->id)->update([
-                'featured_image' => $featured_image,
-                'all_images' => $gallery_images
-            ]);
+            
 
             return response()->json([
                 'status' => true, 
@@ -414,7 +440,7 @@ class ProductsController extends Controller
             extract($parameters);
 
 
-            $categories = Categories::all();
+            
             $product = Product::where('id', $product_id)->first();
 
             if(!$product) {
@@ -453,6 +479,9 @@ class ProductsController extends Controller
                     unset($attribute_value->attr_id);
                     unset($attribute_value->cat_id);
                 }
+                $attribute[$attribute->title] = $attribute->values;
+
+                unset($attribute->values);
             }
 
 
@@ -471,13 +500,44 @@ class ProductsController extends Controller
                 $product['featured_image'] = url($product->featured_image);
             }
 
-            // $product_attributes = [];
-            // $Attributes = ProductAttribute::where('product_id', $product_id)->get()->toArray();
-            // foreach($Attributes as $k => $Attribute) {
-            //     $product_attributes[$Attribute['attribute_id']] =  $Attribute;
-            // }
-
+            $product_attributes = [];
+            $Attributes = ProductAttribute::where('product_id', $product_id)->get()->toArray();
+            foreach($Attributes as $k => $Attribute) {
+                $product_attributes[$Attribute['attribute_id']] =  $Attribute;
+            }
+            $product['categories'] = Categories::all();
             $product['product_attributes'] = $attributes; 
+
+
+            $product_attributes = ProductAttribute::where('product_id', $product->id)->pluck('attribute_value_id', 'attribute_id')->toArray();
+            $attributes = Attributes::with('values')->where('cat_id', $product->category_id)->get();
+            foreach ($attributes as $key => $attribute) {
+                // 
+                if (array_key_exists($attribute->id, $product_attributes)) {
+                    $attribute['selected'] = true;
+                } else {
+                    $attribute['selected'] = false;
+                }
+                $data[] = $attribute;
+                foreach ($attribute->values as $ky => $value) {
+                    // code...
+                    if (in_array($value->id, $product_attributes))
+                    { 
+                        $value['selected'] = true;
+                    } else {
+                        $value['selected'] = false;
+                    }
+                    unset($value->type);
+                    unset($value->color);
+                }
+                $attribute[$attribute->title] = $attribute->values;
+                unset($attribute->values);
+                unset($attribute->created_at);
+                unset($attribute->type);
+                unset($attribute->updated_at);
+                unset($attribute->deleted_at);
+            }
+            $product['attributes'] = $attributes;
 
             return response()->json([
                 'status' => true, 
@@ -541,6 +601,8 @@ class ProductsController extends Controller
                     unset($value->cat_id);
                     unset($value->attr_id);
                 }
+                $val[$val->title] = $val->values;
+                unset($val->values);
             }
 
             $data['attributes'] = $attributes;
