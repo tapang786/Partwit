@@ -37,13 +37,20 @@ class ProductsController extends Controller
         }
         $seller_id = $user->id;
 
-        $parameters = $request->all();
+        $parameters = $request->all();   
         extract($parameters);
+
+        // $all_images = json_decode($all_images);
+        // Log::info($all_images);
+        // exit;
 
         $product_attributes = json_decode($product_attributes);
         $attributes_value = json_decode($attributes_value);
-        // 
-        $deleted = json_decode($deleted);
+
+        if(isset($deleted)) {
+            $deleted = json_decode($deleted);
+        }
+
         try {
 
             if(!isset($request->pro_id)) {
@@ -91,7 +98,6 @@ class ProductsController extends Controller
                     ->all()) ], 200);
             }
 
-            
 
             $args = [
                 "name"          => $name,
@@ -154,7 +160,7 @@ class ProductsController extends Controller
             //     $gallery_images = $product->all_images;
             // }
 
-            if($product->all_images != "" || $product->all_images != null) {
+            if(isset($product->all_images) && ($product->all_images != "" || $product->all_images != null)) {
                 // 
                 if(isset($deleted)) {
                     // 
@@ -178,11 +184,11 @@ class ProductsController extends Controller
                 }
             } 
 
-            $gallery_images = array_merge($all_images_old, $gallery_images);
+            if(isset($all_images_old)) {
+                $gallery_images = array_merge($all_images_old, $gallery_images);
+            }
 
             $gallery_images = json_encode($gallery_images);
-
-
 
             if(count(json_decode($gallery_images)) > 0){
 
