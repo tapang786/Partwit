@@ -635,11 +635,20 @@ class HomeController extends Controller
         
         $user = User::where('email', $email)->first();
         $otp = rand(1000, 9999);
-        
-        $otp_token = UserVerificationToken::firstOrNew([
-            'user_id' => $user->id,
-            'type' => $type
-        ]);
+
+        if(isset($user->id)) {
+            UserVerificationToken::where('user_id', $user->id)->delete();
+            $otp_token = UserVerificationToken::firstOrNew([
+                'user_id' => $user->id,
+                'type' => $type
+            ]);
+        } else {
+            UserVerificationToken::where('user_id', $user_email)->delete();
+            $otp_token = UserVerificationToken::firstOrNew([
+                'user_id' => $user_email,
+                'type' => $type
+            ]);
+        }
 
         $otp_token->otp = $otp;
         $otp_token->expire = Carbon::now()->addMinute(15);
@@ -710,7 +719,7 @@ class HomeController extends Controller
             }
 
             if($old_password == $password) {
-                return response()->json(['status' => false, 'message' => 'your current password cannot be same as previous password!']);
+                return response()->json(['status' => false, 'message' => 'New password can\'t be same as current password.']);
             }
 
             if (Hash::check($old_password, $user->password)) { 
@@ -1253,11 +1262,11 @@ class HomeController extends Controller
                 }
                 $user['rating'] = $rating;
                 
-                return response()->json(['status' => 'success', 'message' => "payment succeeded", 'user_info' => $user, 'data'=>$paymentIntent ], 200);
+                return response()->json(['status' => 'success', 'message' => "Payment Successful", 'user_info' => $user, 'data'=>$paymentIntent ], 200);
 
             } else {
                 // 
-                return response()->json(['status' => 'fail', 'message' => "payment fail", 'data' =>[] ], 200);
+                return response()->json(['status' => 'fail', 'message' => "Payment fail", 'data' =>[] ], 200);
             }
 
         } catch(Exception $e) {
@@ -1685,12 +1694,12 @@ class HomeController extends Controller
             }
             $rev = Reviews::where('seller_id', $seller_id)->where('user_id', $user->id)->get();
 
-            if(count($rev) > 0) {
-                return response()->json([
-                    'status' => false, 
-                    'message' => 'You can\'t give a review again to the same seller!'
-                ]);
-            }
+            // if(count($rev) > 0) {
+            //     return response()->json([
+            //         'status' => false, 
+            //         'message' => 'You can\'t give a review again to the same seller!'
+            //     ]);
+            // }
 
             $seller = User::where('id', $seller_id)->first();
 
@@ -1714,7 +1723,7 @@ class HomeController extends Controller
 
             return response()->json([
                 'status' => true, 
-                'message' => 'Review Submited Successfully!!',
+                'message' => 'Review submitted successfully',
                 // 'data' => $review,
             ]);
 
