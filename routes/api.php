@@ -155,4 +155,9 @@ Route::group(['prefix' => 'v1', 'as' => 'api.', 'namespace' => 'Api\V1\Admin', '
     // filters
     Route::post('filters', [ProductsController::class, 'filtersData']);
 
+
+    // chat
+    Route::post('add-chat', [HomeController::class, 'addChat']);
+    Route::post('chat-list', [HomeController::class, 'ChatList']);
+
 });
